@@ -1,5 +1,6 @@
 import { ArrowDown, ArrowUp, Minus } from "@/lib/icons";
 
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -44,12 +45,12 @@ export function TaskCard({
   return (
     <Card
       className={cn(
-        "w-full max-w-[280px] gap-0 border-secondary py-0 shadow-[var(--shadow-card)] ring-0",
+        "w-full max-w-[280px] gap-0 border-secondary py-0 shadow-card ring-0",
         className
       )}
       size="sm"
     >
-      <CardContent className="flex flex-col gap-2 p-[13px]">
+      <CardContent className="flex flex-col gap-2 p-3">
         <p className="text-sm font-medium leading-snug">{title}</p>
         <div className="flex items-center justify-between pt-1">
           <div className="flex items-center gap-2">
@@ -61,9 +62,7 @@ export function TaskCard({
               aria-label={label}
             />
           </div>
-          <span className="rounded bg-secondary px-[7px] py-[3px] text-[10px] font-medium leading-[15px] text-secondary-foreground">
-            {tag}
-          </span>
+          <Badge variant="secondary">{tag}</Badge>
         </div>
       </CardContent>
     </Card>

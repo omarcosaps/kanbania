@@ -189,3 +189,19 @@ app/
 - **Tailwind classes** reference CSS variables (`bg-primary`, `text-muted-foreground`)
 - **No Figma needed** for component development - shadcn defines the design
 - **Extend, don't rebuild** - customize shadcn components rather than building from scratch
+
+## Design token checklist
+
+Every component must use design tokens — never hardcoded colors, radius, or typography.
+
+**Colors:** semantic classes only (`bg-*`, `text-*`, `border-*`) mapped in `@theme inline` — e.g. `bg-primary`, `text-muted-foreground`, `border-border`, `text-priority-high`
+
+**Radius:** `rounded-sm`, `rounded-md`, `rounded-lg`, `rounded-xl`, or `rounded-full` — never `rounded-[Npx]`
+
+**Typography:** `text-xs` through `text-4xl`, `font-heading` for titles — never `text-[Npx]`
+
+**Shadows:** `shadow-card` — never `shadow-[var(--shadow-card)]` or inline `boxShadow`
+
+**Composition:** prefer shadcn primitives (`Badge`, `Card`, `Button`) over duplicated inline styles
+
+**Forbidden:** hex/rgb in JSX or CSS, arbitrary pixel values in class names, inline `style={{ color: "#..." }}`

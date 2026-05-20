@@ -1,8 +1,8 @@
 const RADIUS_ITEMS = [
-  { name: "sm", className: "rounded-sm" },
-  { name: "md", className: "rounded-md" },
-  { name: "lg", className: "rounded-lg" },
-  { name: "xl", className: "rounded-xl" },
+  { name: "sm", className: "rounded-sm", px: "4px" },
+  { name: "md", className: "rounded-md", px: "8px" },
+  { name: "lg", className: "rounded-lg", px: "12px" },
+  { name: "xl", className: "rounded-xl", px: "24px" },
 ] as const;
 
 export function RadiusDemo() {
@@ -17,7 +17,10 @@ export function RadiusDemo() {
               {item.name}
             </span>
           </div>
-          <span className="text-xs text-muted-foreground">--radius-{item.name}</span>
+          <span className="text-xs text-muted-foreground">
+            --radius-{item.name}
+          </span>
+          <span className="text-xs text-muted-foreground">{item.px}</span>
         </div>
       ))}
     </div>

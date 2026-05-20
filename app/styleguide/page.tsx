@@ -5,6 +5,7 @@ import { FigmaVariablesGrid } from "./_components/figma-variables-grid";
 import { RadiusDemo } from "./_components/radius-demo";
 import { Section } from "./_components/section";
 import { ShadowDemo } from "./_components/shadow-demo";
+import { SpacingDemo } from "./_components/spacing-demo";
 import { ThemeToggle } from "./_components/theme-toggle";
 import { TokenSwatch } from "./_components/token-swatch";
 import { TypographySample } from "./_components/typography-sample";
@@ -128,6 +129,10 @@ export default function StyleguidePage() {
               <dd className="font-medium">Inter</dd>
             </div>
             <div>
+              <dt className="text-muted-foreground">Spacing</dt>
+              <dd className="font-medium">4px base · escala 1–16</dd>
+            </div>
+            <div>
               <dt className="text-muted-foreground">Fonte</dt>
               <dd className="font-medium">Figma node 8001:9301</dd>
             </div>
@@ -191,6 +196,13 @@ export default function StyleguidePage() {
         description="Inter — tamanhos extraídos do design context Figma."
       >
         <TypographySample />
+      </Section>
+
+      <Section
+        title="Spacing scale"
+        description="Escala base 4px — tokens --space-N mapeados para utilitários Tailwind (p-N, gap-N, m-N)."
+      >
+        <SpacingDemo />
       </Section>
 
       <Section title="Border radius" description="--radius: 0.5rem (8px) no Figma.">

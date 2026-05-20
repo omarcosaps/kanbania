@@ -1,5 +1,9 @@
 import { TaskCard } from "@/components/task-card";
 
+import {
+  AntiPatternsSection,
+  TokensUsedSection,
+} from "../../_components/component-doc-sections";
 import { CodeExample } from "../../_components/code-example";
 import { ComponentDemo } from "../../_components/component-demo";
 import { ComponentPageHeader } from "../../_components/component-page-header";
@@ -19,7 +23,7 @@ export default function TaskCardPage() {
     <div className="p-8 md:p-12">
       <ComponentPageHeader
         title="Task Card"
-        description="Card de tarefa do board Kanban. Composto sobre shadcn Card com tokens Figma (borda secondary, sombra --shadow-card, tag 10px). Referência: Figma node 8001:9418."
+        description="Card de tarefa do board Kanban. Compõe Card (ui), Badge size tag, ícones de prioridade e tokens do styleguide. Figma node 8001:9418 é só referência visual."
       />
 
       <ComponentDemo title="Padrão" description="Uso típico no quadro Backlog / Todo.">
@@ -81,11 +85,28 @@ export default function TaskCardPage() {
         </dl>
       </Section>
 
+      <TokensUsedSection
+        items={[
+          "Card: bg-card, border-secondary, rounded-lg (--radius-lg), shadow-[var(--shadow-card)]",
+          "Tag: Badge variant secondary size tag",
+          "Prioridade: text-priority-high | med | low + ícones @/lib/icons",
+          "Padding interno: p-3 (--space-3)",
+        ]}
+      />
+
+      <AntiPatternsSection
+        items={[
+          "Não renderizar tag com <span> e classes duplicadas do Badge",
+          "Não usar p-[13px] ou valores literais do Figma MCP",
+          "Não montar o card só com Card cru sem este componente de domínio",
+        ]}
+      />
+
       <Section title="Acessibilidade">
         <p className="text-sm text-muted-foreground">
           O ícone de prioridade inclui <code className="text-foreground">aria-label</code>{" "}
           descritivo (Alta, Média, Baixa). O card é um container estático; ações de
-          arrastar ou abrir detalhes serão adicionadas no Prompt 3.
+          arrastar ou abrir detalhes serão adicionadas em telas do board.
         </p>
       </Section>
     </div>

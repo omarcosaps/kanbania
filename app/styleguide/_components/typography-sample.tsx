@@ -1,3 +1,5 @@
+import { Badge } from "@/components/ui/badge";
+
 export function TypographySample() {
   return (
     <div className="flex flex-col gap-6">
@@ -31,9 +33,9 @@ export function TypographySample() {
         <p className="text-xs text-muted-foreground">
           Tag · 10px / 15px · font-medium
         </p>
-        <span className="inline-block rounded bg-secondary px-1.5 py-0.5 text-[10px] font-medium leading-[15px] text-secondary-foreground">
+        <Badge variant="secondary" size="tag">
           tech-debt
-        </span>
+        </Badge>
       </div>
       <div className="space-y-1">
         <p className="text-xs text-muted-foreground">

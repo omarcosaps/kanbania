@@ -2,6 +2,11 @@ import { Plus } from "@/lib/icons";
 
 import { Button } from "@/components/ui/button";
 
+import {
+  AntiPatternsSection,
+  ProductCompositionSection,
+  TokensUsedSection,
+} from "../../_components/component-doc-sections";
 import { CodeExample } from "../../_components/code-example";
 import { ComponentDemo } from "../../_components/component-demo";
 import { ComponentPageHeader } from "../../_components/component-page-header";
@@ -18,7 +23,7 @@ export default function ButtonPage() {
     <div className="p-8 md:p-12">
       <ComponentPageHeader
         title="Button"
-        description="Botões shadcn/base-nova com variantes e tamanhos. O primário usa --primary (#4f46e5) do Figma."
+        description="Botões shadcn/base-ui com variantes e tamanhos. Primário via token --primary."
       />
 
       <ComponentDemo title="Variantes">
@@ -68,6 +73,24 @@ export default function ButtonPage() {
           <code className="text-foreground">icon</code>.
         </p>
       </Section>
+
+      <TokensUsedSection
+        items={[
+          "Cores: bg-primary, bg-secondary, border-border, etc.",
+          "Radius: rounded-md (--radius-md) no tamanho default",
+          "Foco: ring-ring / border-ring",
+        ]}
+      />
+
+      <ProductCompositionSection description="Header do board e CTAs de tarefa (ex.: New Task com ícone Plus de @/lib/icons)." />
+
+      <AntiPatternsSection
+        items={[
+          "Não usar hex literal para cor de botão",
+          "Não copiar classes do Figma MCP",
+          "Ícones via @/lib/icons, não lucide-react direto",
+        ]}
+      />
 
       <Section title="Acessibilidade">
         <p className="text-sm text-muted-foreground">

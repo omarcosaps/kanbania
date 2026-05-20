@@ -1,5 +1,7 @@
 # Prompt 1: Design System Setup
 
+> **Legado (bootstrap inicial).** Use apenas para configurar tokens e styleguide do zero. Para telas e componentes novos, siga `docs/DESIGN_SYSTEM.md`, `docs/FIGMA_TO_CODE.md` e o styleguide existente em `/styleguide` — não re-extraia design de screenshots isolados.
+
 Analyze this design screenshot, extract design tokens, and set up a complete design system with shadcn/ui.
 
 ## Input

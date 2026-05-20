@@ -5,6 +5,11 @@ import { useState } from "react";
 
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
+import {
+  AntiPatternsSection,
+  ProductCompositionSection,
+  TokensUsedSection,
+} from "../../_components/component-doc-sections";
 import { CodeExample } from "../../_components/code-example";
 import { ComponentDemo } from "../../_components/component-demo";
 import { ComponentPageHeader } from "../../_components/component-page-header";
@@ -61,6 +66,22 @@ export default function RadioGroupPage() {
       <Section title="Uso">
         <CodeExample code={IMPORT_CODE} />
       </Section>
+
+      <TokensUsedSection
+        items={[
+          "Prioridade: text-priority-high, text-priority-med, text-priority-low",
+          "Controle: border-input, ring-ring, bg-primary quando selecionado",
+        ]}
+      />
+
+      <ProductCompositionSection description="Formulário de criar/editar tarefa. TaskCard usa ícones de prioridade somente leitura; este grupo é para edição." />
+
+      <AntiPatternsSection
+        items={[
+          "Não hardcodar cores de prioridade fora dos tokens priority-*",
+          "Sempre associar RadioGroupItem a <label>",
+        ]}
+      />
 
       <Section title="Acessibilidade">
         <p className="text-sm text-muted-foreground">

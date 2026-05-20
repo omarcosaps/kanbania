@@ -2,6 +2,11 @@ import { AlertCircle } from "@/lib/icons";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
+import {
+  AntiPatternsSection,
+  ProductCompositionSection,
+  TokensUsedSection,
+} from "../../_components/component-doc-sections";
 import { CodeExample } from "../../_components/code-example";
 import { ComponentDemo } from "../../_components/component-demo";
 import { ComponentPageHeader } from "../../_components/component-page-header";
@@ -50,6 +55,23 @@ export default function AlertPage() {
           título conciso para leitores de tela.
         </p>
       </Section>
+
+      <TokensUsedSection
+        items={[
+          "Superfície: bg-card, text-card-foreground",
+          "Destructive: text-destructive, ring-destructive",
+          "Radius: rounded-lg (--radius-lg)",
+        ]}
+      />
+
+      <ProductCompositionSection description="Feedback inline em fluxos de criar/editar tarefa e erros de persistência no board." />
+
+      <AntiPatternsSection
+        items={[
+          "Não usar alert só para feedback trivial (preferir toast no futuro)",
+          "Não estilizar com cores fora dos tokens semânticos",
+        ]}
+      />
 
       <Section title="Acessibilidade">
         <p className="text-sm text-muted-foreground">

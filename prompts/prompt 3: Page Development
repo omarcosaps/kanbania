@@ -8,6 +8,15 @@ Build a [PAGE NAME] page based on the provided design/screenshot.
 
 ## Workflow
 
+### 0. Consult the Design System (obrigatório)
+
+Antes de analisar o Figma:
+
+1. Abra `/styleguide` e liste componentes/tokens aplicáveis.
+2. Leia `docs/FIGMA_TO_CODE.md` e preencha a matriz bloco → componente.
+3. Use composições de domínio existentes (ex.: `TaskCard` para cards de tarefa — **não** montar só com `Card` cru).
+4. Tags de categoria: `Badge variant="secondary" size="tag"`.
+
 ### 1. Analyze the Design Visually
 
 Look at the image and identify:
@@ -186,12 +195,12 @@ For a screenshot showing a project management interface:
 | Sidebar | Sidebar |
 | Project dropdown | Select |
 | Chat messages | Card |
-| Task cards | Card with CardHeader, CardContent, CardFooter |
+| Task cards | `TaskCard` from `@/components/task-card` |
 | "Approve Plan" button | Button (variant: default) |
 | "Edit Plan" button | Button (variant: outline) |
 | Task list items | Card or custom list item |
 | "View Plan" links | Button (variant: ghost) |
-| Status badges | Badge |
+| Status badges / board tags | Badge | `variant="secondary" size="tag"` |
 | Tabs (Preview/Plan/Code) | Tabs |
 | Avatar | Avatar |
 | Input field | Input or Textarea |
@@ -212,3 +221,4 @@ npx shadcn@latest add sidebar card button badge tabs avatar input select
 - **CSS variables** for all colors (defined in `globals.css`)
 - **Mobile-first** - consider responsive behavior from the start
 - **Import from design system** - prioritize importing components from design system over creating new ones
+- **FIGMA_TO_CODE** - follow `docs/FIGMA_TO_CODE.md` checklist; never paste Figma MCP class strings into code

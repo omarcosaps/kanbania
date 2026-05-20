@@ -2,6 +2,8 @@
 
 Add a [COMPONENT NAME] to the project using shadcn/ui.
 
+**Antes de começar:** consulte `/styleguide` e `docs/DESIGN_SYSTEM.md`. Reutilize primitives e tokens existentes. Figma (se houver) é referência de estrutura/comportamento — não copie classes do Figma MCP.
+
 ## Workflow
 
 ### 1. Check if Component Exists in shadcn
@@ -125,6 +127,9 @@ Add to `/app/styleguide/components/[component-name]/page.tsx`:
 - Dark mode preview (toggle between light/dark)
 - Interactive demo with prop controls
 - Code examples for common use cases
+- **Tokens usados** — lista de variáveis CSS / classes Tailwind oficiais
+- **Composição em produto** — onde o componente aparece (ex.: `TaskCard` usa `Badge size="tag"`)
+- **Anti-patterns** — o que não fazer (estilos duplicados, hex literal, etc.)
 
 Use examples from shadcn MCP (`get_item_examples_from_registries`) as reference.
 
@@ -136,6 +141,7 @@ Include in the showcase page:
 - All available props with types and defaults
 - Variant examples with code
 - Accessibility notes (keyboard navigation, ARIA attributes)
+- Seções Tokens usados, Composição em produto e Anti-patterns (ver `docs/DESIGN_SYSTEM.md`)
 
 ### 7. Update Styleguide Navigation
 
@@ -187,5 +193,5 @@ app/
 - **Use shadcn MCP** to search, view, and get examples before building
 - **CSS variables** are the source of truth (defined in `globals.css`)
 - **Tailwind classes** reference CSS variables (`bg-primary`, `text-muted-foreground`)
-- **No Figma needed** for component development - shadcn defines the design
+- **Styleguide-first** — estender primitives existentes; Figma só como referência, não como spec de classes
 - **Extend, don't rebuild** - customize shadcn components rather than building from scratch

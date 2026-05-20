@@ -43,7 +43,7 @@ export default function IconsPage() {
             <Icon icon={Lock} size="xs" />
             Private
           </div>
-          <div className="flex items-center gap-1.5 rounded-lg border border-secondary bg-card px-2 py-1.5 text-xs text-muted-foreground shadow-[var(--shadow-card)]">
+          <div className="flex items-center gap-1.5 rounded-lg border border-secondary bg-card px-2 py-1.5 text-xs text-muted-foreground shadow-card">
             <Icon icon={LayoutGrid} size="sm" />
             View
           </div>

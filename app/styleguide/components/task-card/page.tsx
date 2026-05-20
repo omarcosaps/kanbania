@@ -19,7 +19,7 @@ export default function TaskCardPage() {
     <div className="p-8 md:p-12">
       <ComponentPageHeader
         title="Task Card"
-        description="Card de tarefa do board Kanban. Composto sobre shadcn Card com tokens Figma (borda secondary, sombra --shadow-card, tag 10px). Referência: Figma node 8001:9418."
+        description="Card de tarefa do board Kanban. Composto sobre shadcn Card + Badge com tokens (borda secondary, shadow-card, prioridades text-priority-*). Referência: Figma node 8001:9418."
       />
 
       <ComponentDemo title="Padrão" description="Uso típico no quadro Backlog / Todo.">

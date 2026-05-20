@@ -16,7 +16,7 @@ export default function BadgePage() {
     <div className="p-8 md:p-12">
       <ComponentPageHeader
         title="Badge"
-        description="Etiquetas de categoria nas task cards. No Figma, tags usam secondary + texto secondary-foreground em 10px."
+        description="Etiquetas de categoria nas task cards. Tags usam variant secondary com text-xs (12px) e tokens bg-secondary / text-secondary-foreground."
       />
 
       <ComponentDemo title="Variantes">

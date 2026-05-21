@@ -1,0 +1,128 @@
+import type { WorkspaceState } from "./types";
+
+export const INITIAL_WORKSPACE_STATE: WorkspaceState = {
+  boardOrder: ["board-1", "board-2"],
+  activeBoardId: "board-1",
+  taskCounter: 20,
+  boards: {
+    "board-1": {
+      id: "board-1",
+      name: "Roadmap Q3",
+      columnIds: ["col-backlog", "col-todo", "col-progress", "col-done"],
+    },
+    "board-2": {
+      id: "board-2",
+      name: "Design System",
+      columnIds: ["col-ds-backlog", "col-ds-todo", "col-ds-progress", "col-ds-done"],
+    },
+  },
+  columns: {
+    "col-backlog": { id: "col-backlog", name: "Backlog", boardId: "board-1" },
+    "col-todo": { id: "col-todo", name: "Todo", boardId: "board-1" },
+    "col-progress": {
+      id: "col-progress",
+      name: "In Progress",
+      boardId: "board-1",
+    },
+    "col-done": { id: "col-done", name: "Done", boardId: "board-1" },
+    "col-ds-backlog": {
+      id: "col-ds-backlog",
+      name: "Backlog",
+      boardId: "board-2",
+    },
+    "col-ds-todo": { id: "col-ds-todo", name: "Todo", boardId: "board-2" },
+    "col-ds-progress": {
+      id: "col-ds-progress",
+      name: "In Progress",
+      boardId: "board-2",
+    },
+    "col-ds-done": { id: "col-ds-done", name: "Done", boardId: "board-2" },
+  },
+  tasks: {
+    "task-12": {
+      id: "task-12",
+      taskId: "KAN-12",
+      title: "Update dependencies to latest versions",
+      tag: "tech-debt",
+      priority: "high",
+      columnId: "col-backlog",
+      position: 1,
+    },
+    "task-13": {
+      id: "task-13",
+      taskId: "KAN-13",
+      title: "Design new onboarding flow",
+      tag: "design",
+      priority: "high",
+      columnId: "col-backlog",
+      position: 2,
+    },
+    "task-14": {
+      id: "task-14",
+      taskId: "KAN-14",
+      title: "Audit accessibility on auth screens",
+      tag: "a11y",
+      priority: "medium",
+      columnId: "col-backlog",
+      position: 3,
+    },
+    "task-15": {
+      id: "task-15",
+      taskId: "KAN-15",
+      title: "Implement drag and drop for task cards",
+      tag: "feature",
+      priority: "medium",
+      columnId: "col-todo",
+      position: 1,
+    },
+    "task-16": {
+      id: "task-16",
+      taskId: "KAN-16",
+      title: "Fix column counter not updating",
+      tag: "bug",
+      priority: "high",
+      columnId: "col-todo",
+      position: 2,
+    },
+    "task-17": {
+      id: "task-17",
+      taskId: "KAN-17",
+      title: "Build minimal kanban UI",
+      tag: "frontend",
+      priority: "low",
+      columnId: "col-progress",
+      position: 1,
+    },
+    "task-18": {
+      id: "task-18",
+      taskId: "KAN-18",
+      title: "Setup project repository",
+      tag: "tech-debt",
+      priority: "low",
+      columnId: "col-done",
+      position: 1,
+    },
+    "task-19": {
+      id: "task-19",
+      taskId: "KAN-19",
+      title: "Define color tokens in Figma",
+      tag: "design",
+      priority: "medium",
+      columnId: "col-ds-todo",
+      position: 1,
+    },
+    "task-20": {
+      id: "task-20",
+      taskId: "KAN-20",
+      title: "New Authentication Flow",
+      description:
+        "Implement the new OAuth2 flow using the updated provider libraries. Ensure backward compatibility with existing tokens.",
+      tag: "feature",
+      priority: "high",
+      columnId: "col-ds-backlog",
+      position: 1,
+    },
+  },
+};
+
+export const DEFAULT_BOARD_ID = INITIAL_WORKSPACE_STATE.boardOrder[0];

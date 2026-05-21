@@ -27,42 +27,59 @@ const PRIORITY_CONFIG = {
 export interface TaskCardProps {
   title: string;
   taskId: string;
-  tag: string;
+  tag?: string;
   priority?: TaskPriority;
   className?: string;
+  onClick?: () => void;
 }
 
 export function TaskCard({
   title,
   taskId,
   tag,
-  priority = "high",
+  priority,
   className,
+  onClick,
 }: TaskCardProps) {
-  const { icon: PriorityIcon, className: priorityClassName, label } =
-    PRIORITY_CONFIG[priority];
+  const priorityConfig = priority ? PRIORITY_CONFIG[priority] : null;
 
   return (
     <Card
       className={cn(
-        "w-full max-w-[280px] gap-0 border-secondary py-0 shadow-card ring-0",
+        "w-full max-w-[280px] gap-0 rounded-md border-secondary shadow-card ring-0",
+        onClick && "cursor-pointer transition-shadow hover:shadow-md",
         className
       )}
       size="sm"
+      onClick={onClick}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={
+        onClick
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onClick();
+              }
+            }
+          : undefined
+      }
     >
-      <CardContent className="flex flex-col gap-2 p-3">
+      <CardContent className="flex flex-col gap-2">
         <p className="text-sm font-medium leading-snug">{title}</p>
         <div className="flex items-center justify-between pt-1">
           <div className="flex items-center gap-2">
             <span className="font-mono text-xs text-muted-foreground">
               {taskId}
             </span>
-            <PriorityIcon
-              className={cn("size-3.5", priorityClassName)}
-              aria-label={label}
-            />
+            {priorityConfig ? (
+              <priorityConfig.icon
+                className={cn("size-3.5", priorityConfig.className)}
+                aria-label={priorityConfig.label}
+              />
+            ) : null}
           </div>
-          <Badge variant="secondary">{tag}</Badge>
+          {tag ? <Badge variant="secondary">{tag}</Badge> : null}
         </div>
       </CardContent>
     </Card>

@@ -30,6 +30,7 @@ export interface TaskCardProps {
   tag?: string;
   priority?: TaskPriority;
   className?: string;
+  isDragging?: boolean;
   onClick?: () => void;
 }
 
@@ -39,6 +40,7 @@ export function TaskCard({
   tag,
   priority,
   className,
+  isDragging,
   onClick,
 }: TaskCardProps) {
   const priorityConfig = priority ? PRIORITY_CONFIG[priority] : null;
@@ -47,7 +49,8 @@ export function TaskCard({
     <Card
       className={cn(
         "w-full max-w-[280px] gap-0 rounded-md border-secondary shadow-card ring-0",
-        onClick && "cursor-pointer transition-shadow hover:shadow-md",
+        onClick && "cursor-grab transition-shadow hover:shadow-md active:cursor-grabbing",
+        isDragging && "shadow-md",
         className
       )}
       size="sm"
@@ -66,7 +69,7 @@ export function TaskCard({
       }
     >
       <CardContent className="flex flex-col gap-2">
-        <p className="text-sm font-medium leading-snug">{title}</p>
+        <p className="line-clamp-2 text-sm font-medium leading-snug">{title}</p>
         <div className="flex items-center justify-between pt-1">
           <div className="flex items-center gap-2">
             <span className="font-mono text-xs text-muted-foreground">

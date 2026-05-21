@@ -14,6 +14,7 @@ import type {
   Board,
   Column,
   CreateTaskInput,
+  MoveTaskInput,
   Task,
   TaskPriority,
   UpdateTaskInput,
@@ -24,11 +25,13 @@ import { DEFAULT_COLUMN_NAMES } from "./types";
 type WorkspaceAction =
   | { type: "SET_ACTIVE_BOARD"; boardId: string }
   | { type: "CREATE_BOARD"; name: string; boardId: string }
+  | { type: "RENAME_BOARD"; boardId: string; name: string }
   | { type: "CREATE_COLUMN"; boardId: string; name: string }
   | { type: "RENAME_COLUMN"; columnId: string; name: string }
   | { type: "DELETE_COLUMN"; columnId: string }
   | { type: "CREATE_TASK"; input: CreateTaskInput }
   | { type: "UPDATE_TASK"; input: UpdateTaskInput }
+  | { type: "MOVE_TASK"; input: MoveTaskInput }
   | { type: "DELETE_TASK"; taskId: string };
 
 function createId(prefix: string) {
@@ -60,6 +63,21 @@ function workspaceReducer(
   switch (action.type) {
     case "SET_ACTIVE_BOARD":
       return { ...state, activeBoardId: action.boardId };
+
+    case "RENAME_BOARD": {
+      const board = state.boards[action.boardId];
+      if (!board) {
+        return state;
+      }
+
+      return {
+        ...state,
+        boards: {
+          ...state.boards,
+          [action.boardId]: { ...board, name: action.name },
+        },
+      };
+    }
 
     case "CREATE_BOARD": {
       const boardId = action.boardId;
@@ -214,6 +232,25 @@ function workspaceReducer(
       };
     }
 
+    case "MOVE_TASK": {
+      const existing = state.tasks[action.input.taskId];
+      if (!existing) {
+        return state;
+      }
+
+      return {
+        ...state,
+        tasks: {
+          ...state.tasks,
+          [action.input.taskId]: {
+            ...existing,
+            columnId: action.input.columnId,
+            position: action.input.position,
+          },
+        },
+      };
+    }
+
     case "DELETE_TASK": {
       const { [action.taskId]: _removed, ...remainingTasks } = state.tasks;
       return { ...state, tasks: remainingTasks };
@@ -229,11 +266,13 @@ interface WorkspaceContextValue {
   activeBoard: Board | undefined;
   setActiveBoard: (boardId: string) => void;
   createBoard: (name: string) => string;
+  renameBoard: (boardId: string, name: string) => void;
   createColumn: (boardId: string, name: string) => void;
   renameColumn: (columnId: string, name: string) => void;
   deleteColumn: (columnId: string) => void;
   createTask: (input: CreateTaskInput) => void;
   updateTask: (input: UpdateTaskInput) => void;
+  moveTask: (input: MoveTaskInput) => void;
   deleteTask: (taskId: string) => void;
   getBoardColumns: (boardId: string) => Column[];
   getColumnTasks: (columnId: string) => Task[];
@@ -281,6 +320,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         dispatch({ type: "CREATE_BOARD", name, boardId });
         return boardId;
       },
+      renameBoard: (boardId, name) =>
+        dispatch({ type: "RENAME_BOARD", boardId, name }),
       createColumn: (boardId, name) =>
         dispatch({ type: "CREATE_COLUMN", boardId, name }),
       renameColumn: (columnId, name) =>
@@ -289,6 +330,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         dispatch({ type: "DELETE_COLUMN", columnId }),
       createTask: (input) => dispatch({ type: "CREATE_TASK", input }),
       updateTask: (input) => dispatch({ type: "UPDATE_TASK", input }),
+      moveTask: (input) => dispatch({ type: "MOVE_TASK", input }),
       deleteTask: (taskId) => dispatch({ type: "DELETE_TASK", taskId }),
       getBoardColumns,
       getColumnTasks,

@@ -49,6 +49,12 @@ export interface UpdateTaskInput {
   columnId?: string;
 }
 
+export interface MoveTaskInput {
+  taskId: string;
+  columnId: string;
+  position: number;
+}
+
 export const TASK_TAGS = [
   "tech-debt",
   "design",

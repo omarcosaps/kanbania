@@ -1,7 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  closestCorners,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type DragStartEvent,
+} from "@dnd-kit/core";
+import { arrayMove } from "@dnd-kit/sortable";
+import { useRef, useState } from "react";
+import { toast } from "sonner";
 
+import { TaskCard } from "@/components/task-card";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,7 +22,11 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { useWorkspace } from "@/features/workspace/store";
+import { getPositionForIndex } from "@/features/workspace/lib/task-position";
+import {
+  priorityToTaskCardPriority,
+  useWorkspace,
+} from "@/features/workspace/store";
 import type { Task, TaskPriority } from "@/features/workspace/types";
 import { Plus } from "@/lib/icons";
 
@@ -26,16 +43,27 @@ export function KanbanBoard({
   onNewTaskColumnChange,
 }: KanbanBoardProps) {
   const {
+    state,
     activeBoard,
     getBoardColumns,
     getColumnTasks,
+    getTaskById,
     createTask,
     createColumn,
+    moveTask,
   } = useWorkspace();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [addColumnOpen, setAddColumnOpen] = useState(false);
   const [newColumnName, setNewColumnName] = useState("");
+  const [activeDragTask, setActiveDragTask] = useState<Task | null>(null);
+  const wasDraggingRef = useRef(false);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    })
+  );
 
   if (!activeBoard) {
     return null;
@@ -43,10 +71,19 @@ export function KanbanBoard({
 
   const columns = getBoardColumns(activeBoard.id);
 
-  const handleCreateTask = (
+  const handleCreateTask = async (
     columnId: string,
     data: { title: string; tag?: string; priority?: TaskPriority }
-  ) => {
+  ): Promise<boolean> => {
+    await new Promise((resolve) => {
+      window.setTimeout(resolve, 400);
+    });
+
+    if (data.title.trim().toLowerCase() === "fail") {
+      toast.error("Failed to save. Please try again.");
+      return false;
+    }
+
     createTask({
       title: data.title,
       columnId,
@@ -54,11 +91,91 @@ export function KanbanBoard({
       priority: data.priority,
     });
     onNewTaskColumnChange(null);
+    return true;
   };
 
   const handleTaskClick = (task: Task) => {
+    if (wasDraggingRef.current) {
+      return;
+    }
     setSelectedTask(task);
     setModalOpen(true);
+  };
+
+  const handleDragStart = (event: DragStartEvent) => {
+    wasDraggingRef.current = true;
+    const task = getTaskById(String(event.active.id));
+    setActiveDragTask(task ?? null);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveDragTask(null);
+
+    window.setTimeout(() => {
+      wasDraggingRef.current = false;
+    }, 0);
+
+    if (!over) {
+      return;
+    }
+
+    const activeId = String(active.id);
+    const overId = String(over.id);
+    const activeTask = getTaskById(activeId);
+
+    if (!activeTask || activeId === overId) {
+      return;
+    }
+
+    let targetColumnId: string;
+    let overIndex: number;
+
+    if (state.columns[overId]) {
+      targetColumnId = overId;
+      overIndex = getColumnTasks(overId)
+        .filter((task) => task.id !== activeId)
+        .length;
+    } else {
+      const overTask = getTaskById(overId);
+      if (!overTask) {
+        return;
+      }
+      targetColumnId = overTask.columnId;
+      overIndex = getColumnTasks(targetColumnId).findIndex(
+        (task) => task.id === overId
+      );
+      if (overIndex < 0) {
+        overIndex = getColumnTasks(targetColumnId).filter(
+          (task) => task.id !== activeId
+        ).length;
+      }
+    }
+
+    const sourceColumnId = activeTask.columnId;
+    const sourceTasks = getColumnTasks(sourceColumnId);
+    const activeIndex = sourceTasks.findIndex((task) => task.id === activeId);
+
+    if (sourceColumnId === targetColumnId) {
+      if (activeIndex === overIndex) {
+        return;
+      }
+
+      const reordered = arrayMove(sourceTasks, activeIndex, overIndex);
+      const newIndex = reordered.findIndex((task) => task.id === activeId);
+      const withoutActive = sourceTasks.filter((task) => task.id !== activeId);
+      const position = getPositionForIndex(withoutActive, newIndex);
+
+      moveTask({ taskId: activeId, columnId: targetColumnId, position });
+      return;
+    }
+
+    const targetTasks = getColumnTasks(targetColumnId).filter(
+      (task) => task.id !== activeId
+    );
+    const position = getPositionForIndex(targetTasks, overIndex);
+
+    moveTask({ taskId: activeId, columnId: targetColumnId, position });
   };
 
   const handleAddColumn = () => {
@@ -73,29 +190,49 @@ export function KanbanBoard({
 
   return (
     <>
-      <div className="flex gap-4 overflow-x-auto px-6 pt-8 pb-8">
-        {columns.map((column) => (
-          <KanbanColumn
-            key={column.id}
-            column={column}
-            tasks={getColumnTasks(column.id)}
-            isCreating={newTaskColumnId === column.id}
-            onStartCreate={() => onNewTaskColumnChange(column.id)}
-            onCancelCreate={() => onNewTaskColumnChange(null)}
-            onCreateTask={(data) => handleCreateTask(column.id, data)}
-            onTaskClick={handleTaskClick}
-          />
-        ))}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCorners}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="flex gap-4 overflow-x-auto px-6 pt-8 pb-8">
+          {columns.map((column) => (
+            <KanbanColumn
+              key={column.id}
+              column={column}
+              tasks={getColumnTasks(column.id)}
+              isCreating={newTaskColumnId === column.id}
+              onStartCreate={() => onNewTaskColumnChange(column.id)}
+              onCancelCreate={() => onNewTaskColumnChange(null)}
+              onCreateTask={(data) => handleCreateTask(column.id, data)}
+              onTaskClick={handleTaskClick}
+            />
+          ))}
 
-        <button
-          type="button"
-          onClick={() => setAddColumnOpen(true)}
-          className="flex h-[120px] w-[280px] shrink-0 items-center justify-center gap-2 rounded-lg border border-dashed border-border text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
-        >
-          <Plus className="size-4" />
-          Add Column
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={() => setAddColumnOpen(true)}
+            className="flex h-[120px] w-[280px] shrink-0 items-center justify-center gap-2 rounded-lg border border-dashed border-border text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+          >
+            <Plus className="size-4" />
+            Add Column
+          </button>
+        </div>
+
+        <DragOverlay dropAnimation={{ duration: 150 }}>
+          {activeDragTask ? (
+            <TaskCard
+              title={activeDragTask.title}
+              taskId={activeDragTask.taskId}
+              tag={activeDragTask.tag}
+              priority={priorityToTaskCardPriority(activeDragTask.priority)}
+              isDragging
+              className="shadow-md"
+            />
+          ) : null}
+        </DragOverlay>
+      </DndContext>
 
       <TaskModal
         task={selectedTask}

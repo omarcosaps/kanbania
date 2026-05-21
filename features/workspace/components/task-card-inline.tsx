@@ -21,7 +21,7 @@ interface TaskCardInlineProps {
     title: string;
     tag?: string;
     priority?: TaskPriority;
-  }) => void;
+  }) => void | Promise<void>;
   onCancel: () => void;
   className?: string;
 }
@@ -46,12 +46,12 @@ export function TaskCardInline({
     input?.focus();
   }, []);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const trimmed = title.trim();
     if (!trimmed) {
       return;
     }
-    onSave({ title: trimmed, tag, priority: priority ?? undefined });
+    await onSave({ title: trimmed, tag, priority: priority ?? undefined });
   };
 
   return (

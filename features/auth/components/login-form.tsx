@@ -16,6 +16,14 @@ import {
 
 import { PasswordInput } from "./password-input";
 
+const MOCK_DELAY_MS = 600;
+
+function delay(ms: number) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
+}
+
 export function LoginForm() {
   const router = useRouter();
   const [authError, setAuthError] = useState<string | null>(null);
@@ -31,15 +39,16 @@ export function LoginForm() {
     },
   });
 
-  const onSubmit = (values: LoginFormValues) => {
-    console.log("login", values);
+  const onSubmit = async (values: LoginFormValues) => {
+    setAuthError(null);
+    await delay(MOCK_DELAY_MS);
 
     if (values.email === "taken@example.com") {
       setAuthError("Email or password is incorrect.");
       return;
     }
 
-    setAuthError(null);
+    console.log("login", values);
     router.push("/workspace");
   };
 
@@ -86,7 +95,7 @@ export function LoginForm() {
       </div>
 
       <Button type="submit" className="mt-2 h-10 w-full" disabled={isSubmitting}>
-        Log in
+        {isSubmitting ? "Logging in…" : "Log in"}
       </Button>
     </form>
   );

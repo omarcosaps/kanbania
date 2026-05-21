@@ -76,6 +76,13 @@
   --radius-3xl: calc(var(--radius) * 2);
   --radius-4xl: calc(var(--radius) * 2.5);
   --shadow-card: var(--shadow-card);
+  --shadow-elevated: var(--shadow-elevated);
+  --shadow-none: var(--shadow-none);
+  --color-surface-input: var(--surface-input);
+  --transition-duration-fast: var(--duration-fast);
+  --transition-duration-normal: var(--duration-normal);
+  --transition-duration-slow: var(--duration-slow);
+  --ease-default: var(--ease-default);
   --spacing: var(--space-1);
   --spacing-1: var(--space-1);
   --spacing-2: var(--space-2);
@@ -175,7 +182,35 @@
   --gray-800: oklch(0.274 0.006 286.033);
   --gray-900: oklch(0.21 0.006 285.885);
 
+  --shadow-none: none;
   --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-elevated:
+    0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+
+  --surface-input: var(--secondary);
+
+  /* Motion */
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Typography scale (semantic) */
+  --text-display-size: 1.5rem;
+  --text-display-leading: 2.25rem;
+  --text-display-weight: 600;
+
+  --text-heading-size: 0.875rem;
+  --text-heading-leading: 1.25rem;
+  --text-heading-weight: 500;
+
+  --text-body-size: 0.875rem;
+  --text-body-leading: 1.20625rem;
+  --text-body-weight: 500;
+
+  --text-caption-size: 0.75rem;
+  --text-caption-leading: 1rem;
+  --text-caption-weight: 400;
 
   /* Spacing scale (4px base) */
   --space-1: 0.25rem;
@@ -276,12 +311,56 @@
   --gray-800: oklch(0.967 0.001 286.375);
   --gray-900: oklch(0.985 0 0);
 
+  --shadow-none: none;
   --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3);
+  --shadow-elevated:
+    0 4px 6px -1px rgb(0 0 0 / 0.35), 0 2px 4px -2px rgb(0 0 0 / 0.35);
+
+  --surface-input: var(--secondary);
+}
+
+@utility text-display {
+  font-size: var(--text-display-size);
+  line-height: var(--text-display-leading);
+  font-weight: var(--text-display-weight);
+}
+
+@utility text-heading {
+  font-size: var(--text-heading-size);
+  line-height: var(--text-heading-leading);
+  font-weight: var(--text-heading-weight);
+}
+
+@utility text-body {
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-leading);
+  font-weight: var(--text-body-weight);
+}
+
+@utility text-caption {
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-leading);
+  font-weight: var(--text-caption-weight);
 }
 
 @utility text-tag {
   font-size: var(--text-tag-size);
   line-height: var(--text-tag-leading);
+  font-weight: 500;
+}
+
+@utility shadow-card {
+  box-shadow: var(--shadow-card);
+}
+
+@utility shadow-elevated {
+  box-shadow: var(--shadow-elevated);
+}
+
+@utility transition-interactive {
+  transition-property: color, background-color, border-color, box-shadow, opacity;
+  transition-duration: var(--duration-normal);
+  transition-timing-function: var(--ease-default);
 }
 
 @layer base {

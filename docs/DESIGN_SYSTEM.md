@@ -28,6 +28,9 @@ Fluxo detalhado: [FIGMA_TO_CODE.md](./FIGMA_TO_CODE.md).
 |-------------|--------|
 | Botão, Badge, Card, Alert, etc. | `@/components/ui/*` |
 | Card de tarefa do board | `@/components/task-card` |
+| Campo de formulário | `@/components/form-field` |
+| Auth (form, card, layout) | `@/components/auth-form`, `auth-card`, `centered-auth-layout` |
+| Board (coluna, toolbar, tabs) | `@/components/kanban-column`, `board-toolbar`, `workspace-tabs`, `kanban-board`, `dashboard-layout` |
 | Ícones | `@/lib/icons` (nunca `lucide-react` direto em features) |
 | Utilitário de classes | `@/lib/utils` (`cn`) |
 
@@ -65,13 +68,25 @@ Fluxo detalhado: [FIGMA_TO_CODE.md](./FIGMA_TO_CODE.md).
 | `--shadow-card` | `shadow-[var(--shadow-card)]` em cards de board |
 | `--space-1` … `--space-16` | `p-3`, `gap-2`, etc. (escala Tailwind mapeada em `@theme`) |
 
-### Tipografia de tag (board)
+### Tipografia semântica
 
-| Token | Classe |
-|-------|--------|
-| `--text-tag-size` | `text-tag` |
-| `--text-tag-leading` | (incluído em `text-tag`) |
-| `--spacing-tag-x`, `--spacing-tag-y` | usados em `Badge size="tag"` |
+| Role | Classe | Uso |
+|------|--------|-----|
+| display | `text-display` | Título de board / auth |
+| heading | `text-heading` | Coluna, labels |
+| body | `text-body` | Task title, botões |
+| caption | `text-caption` | Metadata, subtítulos |
+| tag | `text-tag` | Badge `size="tag"` |
+
+### Superfície, sombra e motion
+
+| Token | Classe / uso |
+|-------|----------------|
+| `--surface-input` | `bg-surface-input` (Input `variant="filled"`) |
+| `--shadow-card` | `shadow-card` |
+| `--shadow-elevated` | `shadow-elevated` (AuthCard) |
+| `--duration-normal` | `transition-interactive` |
+| `--spacing-tag-x`, `--spacing-tag-y` | `Badge size="tag"` |
 
 ## Matriz: reutilizar vs criar
 
@@ -107,3 +122,4 @@ Registre aqui token ou variante nova:
 | Data | Mudança |
 |------|---------|
 | 2026-05 | `Badge size="tag"`, tokens `--text-tag-*`, `--spacing-tag-*`; TaskCard usa Badge |
+| 2026-05 | Tokens tipografia (`text-display`…`text-caption`), motion, `shadow-elevated`, `surface-input`; primitives Input/Label/Tabs; composições FormField, AuthCard; patterns AuthForm, KanbanColumn; layouts CenteredAuthLayout, DashboardLayout |

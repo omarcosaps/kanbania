@@ -8,6 +8,8 @@ import { ShadowDemo } from "./_components/shadow-demo";
 import { SpacingDemo } from "./_components/spacing-demo";
 import { ThemeToggle } from "./_components/theme-toggle";
 import { TokenSwatch } from "./_components/token-swatch";
+import { InteractiveStatesDemo } from "./_components/interactive-states-demo";
+import { MotionDemo } from "./_components/motion-demo";
 import { TypographySample } from "./_components/typography-sample";
 import { FIGMA_VARIABLES } from "./figma-tokens";
 
@@ -193,9 +195,23 @@ export default function StyleguidePage() {
 
       <Section
         title="Tipografia"
-        description="Inter — tamanhos extraídos do design context Figma."
+        description="Roles semânticos — utilitários text-display, text-heading, text-body, text-caption, text-tag."
       >
         <TypographySample />
+      </Section>
+
+      <Section
+        title="Motion"
+        description="Durações e easing padrão para estados interativos."
+      >
+        <MotionDemo />
+      </Section>
+
+      <Section
+        title="Estados interativos"
+        description="Contrato hover, focus, active e disabled (sem tokens por estado)."
+      >
+        <InteractiveStatesDemo />
       </Section>
 
       <Section
@@ -209,7 +225,10 @@ export default function StyleguidePage() {
         <RadiusDemo />
       </Section>
 
-      <Section title="Sombras" description="Overlay+Shadow dos cards de tarefa.">
+      <Section
+        title="Sombras"
+        description="shadow-card (task cards) e shadow-elevated (auth card, modais leves)."
+      >
         <ShadowDemo />
       </Section>
 

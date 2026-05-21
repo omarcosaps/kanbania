@@ -45,16 +45,16 @@ export function TaskCard({
   return (
     <Card
       className={cn(
-        "w-full max-w-[280px] gap-0 rounded-lg border-secondary py-0 shadow-[var(--shadow-card)] ring-0",
+        "shadow-card w-full max-w-[280px] gap-0 rounded-lg border-secondary py-0 ring-0",
         className
       )}
       size="sm"
     >
       <CardContent className="flex flex-col gap-2 p-3">
-        <p className="text-sm font-medium leading-snug">{title}</p>
+        <p className="text-body">{title}</p>
         <div className="flex items-center justify-between pt-1">
           <div className="flex items-center gap-2">
-            <span className="font-mono text-xs text-muted-foreground">
+            <span className="text-caption font-mono text-muted-foreground">
               {taskId}
             </span>
             <PriorityIcon

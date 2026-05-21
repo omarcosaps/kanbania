@@ -15,7 +15,7 @@ export function FoundationLinks() {
           <Link
             key={item.href}
             href={item.href}
-            className="group rounded-lg border border-border bg-card p-5 shadow-[var(--shadow-card)] transition-colors hover:border-primary/30 hover:bg-muted/30"
+            className="group shadow-card rounded-lg border border-border bg-card p-5 transition-interactive hover:border-primary/30 hover:bg-muted/30"
           >
             <h3 className="font-semibold text-foreground group-hover:text-primary">
               {item.name}

@@ -16,9 +16,10 @@ export const FIGMA_VARIABLES = {
 } as const;
 
 export const FIGMA_TYPOGRAPHY = {
-  pageTitle: { size: "18px", lineHeight: "28px", weight: 500 },
-  body: { size: "14px", lineHeight: "20px", weight: 500 },
-  metadata: { size: "12px", lineHeight: "16px", weight: 400 },
+  display: { size: "24px", lineHeight: "36px", weight: 600 },
+  heading: { size: "14px", lineHeight: "20px", weight: 500 },
+  body: { size: "14px", lineHeight: "19.25px", weight: 500 },
+  caption: { size: "12px", lineHeight: "16px", weight: 400 },
   tag: { size: "10px", lineHeight: "15px", weight: 500 },
 } as const;
 

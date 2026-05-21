@@ -1,0 +1,128 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+
+import { Logo } from "@/components/layout/logo";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { useWorkspace } from "@/features/workspace/store";
+import { Plus, User } from "@/lib/icons";
+import { cn } from "@/lib/utils";
+
+export function WorkspaceNav() {
+  const router = useRouter();
+  const { state, activeBoard, setActiveBoard, createBoard } = useWorkspace();
+  const [newBoardOpen, setNewBoardOpen] = useState(false);
+  const [boardName, setBoardName] = useState("");
+
+  const handleBoardChange = (boardId: string) => {
+    setActiveBoard(boardId);
+    router.push(`/workspace/${boardId}`);
+  };
+
+  const handleCreateBoard = () => {
+    const name = boardName.trim();
+    if (!name) {
+      return;
+    }
+
+    const boardId = createBoard(name);
+    setBoardName("");
+    setNewBoardOpen(false);
+    router.push(`/workspace/${boardId}`);
+  };
+
+  return (
+    <>
+      <header className="border-b border-border bg-card">
+        <div className="flex h-12 items-center gap-4 px-4">
+          <div className="flex items-center gap-2">
+            <Logo size="sm" />
+            <span className="text-sm font-medium">Workspace</span>
+          </div>
+
+          <nav className="flex flex-1 items-center gap-1 overflow-x-auto">
+            {state.boardOrder.map((boardId) => {
+              const board = state.boards[boardId];
+              if (!board) {
+                return null;
+              }
+
+              const isActive = boardId === activeBoard?.id;
+
+              return (
+                <button
+                  key={boardId}
+                  type="button"
+                  onClick={() => handleBoardChange(boardId)}
+                  className={cn(
+                    "relative h-[49px] px-3 py-2 text-sm font-medium transition-colors",
+                    isActive
+                      ? "text-foreground"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {board.name}
+                  {isActive ? (
+                    <span className="absolute inset-x-0 -bottom-px h-0.5 bg-primary" />
+                  ) : null}
+                </button>
+              );
+            })}
+
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="shrink-0 text-muted-foreground"
+              onClick={() => setNewBoardOpen(true)}
+              aria-label="Add board"
+            >
+              <Plus className="size-4" />
+            </Button>
+          </nav>
+
+          <Avatar className="size-7">
+            <AvatarFallback className="bg-muted text-muted-foreground">
+              <User className="size-3.5" />
+            </AvatarFallback>
+          </Avatar>
+        </div>
+      </header>
+
+      <Dialog open={newBoardOpen} onOpenChange={setNewBoardOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Create new board</DialogTitle>
+          </DialogHeader>
+          <Input
+            placeholder="Board name"
+            value={boardName}
+            onChange={(event) => setBoardName(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                handleCreateBoard();
+              }
+            }}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setNewBoardOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateBoard} disabled={!boardName.trim()}>
+              Create
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}

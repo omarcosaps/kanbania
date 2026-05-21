@@ -193,5 +193,23 @@ app/
 - **Use shadcn MCP** to search, view, and get examples before building
 - **CSS variables** are the source of truth (defined in `globals.css`)
 - **Tailwind classes** reference CSS variables (`bg-primary`, `text-muted-foreground`)
-- **Styleguide-first** — estender primitives existentes; Figma só como referência, não como spec de classes
+- **Styleguide-first** — estender primitives existentes; Figma só como referência de estrutura/comportamento, não como spec de classes
 - **Extend, don't rebuild** - customize shadcn components rather than building from scratch
+
+## Design token checklist
+
+Every component must use design tokens — never hardcoded colors, radius, or typography.
+
+**Colors:** semantic classes only (`bg-*`, `text-*`, `border-*`) mapped in `@theme inline` — e.g. `bg-primary`, `text-muted-foreground`, `border-border`, `text-priority-high`
+
+**Radius:** `rounded-sm`, `rounded-md`, `rounded-lg`, `rounded-xl`, or `rounded-full` — never `rounded-[Npx]`
+
+**Typography:** `text-display`, `text-heading`, `text-body`, `text-caption`, `text-tag`, or `text-xs` through `text-4xl` — never `text-[Npx]`
+
+**Shadows:** `shadow-card`, `shadow-elevated` — never `shadow-[var(--shadow-card)]` or inline `boxShadow`
+
+**Motion:** `transition-interactive` — never `transition-all` sem token
+
+**Composition:** prefer shadcn primitives (`Badge`, `Card`, `Button`) over duplicated inline styles
+
+**Forbidden:** hex/rgb in JSX or CSS, arbitrary pixel values in class names, inline `style={{ color: "#..." }}`

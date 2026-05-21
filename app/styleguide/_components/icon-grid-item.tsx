@@ -22,7 +22,7 @@ export function IconGridItem({ entry }: { entry: IconCatalogEntry }) {
                 aria-hidden
               />
             </div>
-            <span className="font-mono text-[10px] text-muted-foreground">
+            <span className="font-mono text-xs text-muted-foreground">
               {size} · {ICON_SIZES[size].replace("size-", "")}
             </span>
           </div>

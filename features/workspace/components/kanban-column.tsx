@@ -1,8 +1,12 @@
 "use client";
 
+import { useDroppable } from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { useState } from "react";
 
-import { TaskCard } from "@/components/task-card";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -16,13 +20,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import {
-  priorityToTaskCardPriority,
-  useWorkspace,
-} from "@/features/workspace/store";
+import { useWorkspace } from "@/features/workspace/store";
 import type { Column, Task, TaskPriority } from "@/features/workspace/types";
 import { MoreHorizontal, Plus } from "@/lib/icons";
+import { cn } from "@/lib/utils";
 
+import { SortableTaskCard } from "./sortable-task-card";
 import { TaskCardInline } from "./task-card-inline";
 
 interface KanbanColumnProps {
@@ -35,7 +38,7 @@ interface KanbanColumnProps {
     title: string;
     tag?: string;
     priority?: TaskPriority;
-  }) => void;
+  }) => Promise<boolean>;
   onTaskClick: (task: Task) => void;
 }
 
@@ -49,6 +52,7 @@ export function KanbanColumn({
   onTaskClick,
 }: KanbanColumnProps) {
   const { renameColumn, deleteColumn } = useWorkspace();
+  const { setNodeRef, isOver } = useDroppable({ id: column.id });
   const [renameOpen, setRenameOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [columnName, setColumnName] = useState(column.name);
@@ -118,12 +122,20 @@ export function KanbanColumn({
           </div>
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div
+          ref={setNodeRef}
+          className={cn(
+            "flex min-h-[80px] flex-col gap-2 rounded-lg p-1 transition-colors",
+            isOver && "bg-muted/30"
+          )}
+        >
           {isCreating ? (
             <TaskCardInline
-              onSave={(data) => {
-                onCreateTask(data);
-                onCancelCreate();
+              onSave={async (data) => {
+                const saved = await onCreateTask(data);
+                if (saved) {
+                  onCancelCreate();
+                }
               }}
               onCancel={onCancelCreate}
             />
@@ -135,16 +147,18 @@ export function KanbanColumn({
             </p>
           ) : null}
 
-          {tasks.map((task) => (
-            <TaskCard
-              key={task.id}
-              title={task.title}
-              taskId={task.taskId}
-              tag={task.tag}
-              priority={priorityToTaskCardPriority(task.priority)}
-              onClick={() => onTaskClick(task)}
-            />
-          ))}
+          <SortableContext
+            items={tasks.map((task) => task.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            {tasks.map((task) => (
+              <SortableTaskCard
+                key={task.id}
+                task={task}
+                onTaskClick={onTaskClick}
+              />
+            ))}
+          </SortableContext>
         </div>
       </div>
 

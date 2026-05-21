@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
@@ -14,8 +15,17 @@ import {
 
 import { PasswordInput } from "./password-input";
 
+const MOCK_DELAY_MS = 600;
+
+function delay(ms: number) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
+}
+
 export function SignupForm() {
   const router = useRouter();
+  const [signupError, setSignupError] = useState<string | null>(null);
   const {
     register,
     handleSubmit,
@@ -29,13 +39,25 @@ export function SignupForm() {
     },
   });
 
-  const onSubmit = (values: SignupFormValues) => {
+  const onSubmit = async (values: SignupFormValues) => {
+    setSignupError(null);
+    await delay(MOCK_DELAY_MS);
+
+    if (values.email === "taken@example.com") {
+      setSignupError("This email is already in use. Please log in.");
+      return;
+    }
+
     console.log("signup", values);
     router.push("/workspace");
   };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      {signupError ? (
+        <p className="text-sm text-destructive">{signupError}</p>
+      ) : null}
+
       <div className="space-y-2">
         <Label htmlFor="name">Name</Label>
         <Input
@@ -77,7 +99,7 @@ export function SignupForm() {
       </div>
 
       <Button type="submit" className="mt-2 h-10 w-full" disabled={isSubmitting}>
-        Create account
+        {isSubmitting ? "Creating account…" : "Create account"}
       </Button>
     </form>
   );

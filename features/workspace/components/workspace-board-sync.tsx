@@ -8,10 +8,14 @@ export function WorkspaceBoardSync({ boardId }: { boardId: string }) {
   const { state, setActiveBoard } = useWorkspace();
 
   useEffect(() => {
-    if (state.boards[boardId]) {
+    if (!state.boards[boardId]) {
+      return;
+    }
+
+    if (state.activeBoardId !== boardId) {
       setActiveBoard(boardId);
     }
-  }, [boardId, setActiveBoard, state.boards]);
+  }, [boardId, setActiveBoard, state.activeBoardId, state.boards]);
 
   return null;
 }

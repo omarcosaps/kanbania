@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Logo } from "@/components/layout/logo";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { UserMenu } from "@/features/auth/components/user-menu";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useWorkspace } from "@/features/workspace/store";
-import { Plus, User } from "@/lib/icons";
+import { Plus } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
 export function WorkspaceNav() {
@@ -90,11 +90,7 @@ export function WorkspaceNav() {
             </Button>
           </nav>
 
-          <Avatar className="size-7">
-            <AvatarFallback className="bg-muted text-muted-foreground">
-              <User className="size-3.5" />
-            </AvatarFallback>
-          </Avatar>
+          <UserMenu />
         </div>
       </header>
 

@@ -62,6 +62,9 @@ function workspaceReducer(
 ): WorkspaceState {
   switch (action.type) {
     case "SET_ACTIVE_BOARD":
+      if (state.activeBoardId === action.boardId) {
+        return state;
+      }
       return { ...state, activeBoardId: action.boardId };
 
     case "RENAME_BOARD": {
@@ -309,12 +312,16 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     [state.tasks]
   );
 
+  const setActiveBoard = useCallback(
+    (boardId: string) => dispatch({ type: "SET_ACTIVE_BOARD", boardId }),
+    []
+  );
+
   const value = useMemo<WorkspaceContextValue>(
     () => ({
       state,
       activeBoard,
-      setActiveBoard: (boardId) =>
-        dispatch({ type: "SET_ACTIVE_BOARD", boardId }),
+      setActiveBoard,
       createBoard: (name) => {
         const boardId = createId("board");
         dispatch({ type: "CREATE_BOARD", name, boardId });
@@ -336,7 +343,14 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       getColumnTasks,
       getTaskById,
     }),
-    [state, activeBoard, getBoardColumns, getColumnTasks, getTaskById]
+    [
+      state,
+      activeBoard,
+      setActiveBoard,
+      getBoardColumns,
+      getColumnTasks,
+      getTaskById,
+    ]
   );
 
   return (

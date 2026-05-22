@@ -12,6 +12,7 @@ import {
   signupSchema,
   type SignupFormValues,
 } from "@/features/auth/schemas";
+import { setSession } from "@/features/auth/session";
 
 import { PasswordInput } from "./password-input";
 
@@ -48,7 +49,10 @@ export function SignupForm() {
       return;
     }
 
-    console.log("signup", values);
+    setSession({
+      name: values.name,
+      email: values.email,
+    });
     router.push("/workspace");
   };
 

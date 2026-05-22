@@ -9,10 +9,12 @@ import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { displayNameFromEmail } from "@/features/auth/lib/display-name";
 import {
   loginSchema,
   type LoginFormValues,
 } from "@/features/auth/schemas";
+import { setSession } from "@/features/auth/session";
 
 import { PasswordInput } from "./password-input";
 
@@ -48,7 +50,10 @@ export function LoginForm() {
       return;
     }
 
-    console.log("login", values);
+    setSession({
+      name: displayNameFromEmail(values.email),
+      email: values.email,
+    });
     router.push("/workspace");
   };
 

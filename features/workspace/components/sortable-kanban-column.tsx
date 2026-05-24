@@ -42,12 +42,6 @@ export function SortableKanbanColumn(props: SortableKanbanColumnProps) {
     transition: transition ?? "transform 150ms ease",
   };
 
-  // #region agent log
-  if (isDragging && transform) {
-    fetch('http://127.0.0.1:7900/ingest/3c014148-ec67-4e67-8fe1-dc36ef123a7f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d858df'},body:JSON.stringify({sessionId:'d858df',runId:'post-fix',location:'sortable-kanban-column.tsx:render',message:'column dragging transform',data:{columnId:column.id,transform,x:transform.x,y:transform.y},timestamp:Date.now(),hypothesisId:'D'})}).catch(()=>{});
-  }
-  // #endregion
-
   return (
     <div
       ref={setNodeRef}

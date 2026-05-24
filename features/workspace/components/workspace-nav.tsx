@@ -50,7 +50,8 @@ export function WorkspaceNav() {
             <span className="text-sm font-medium">Workspace</span>
           </div>
 
-          <nav className="flex flex-1 items-center gap-1 overflow-x-auto">
+          <nav className="flex min-w-0 flex-1 items-center overflow-hidden">
+            <div className="flex items-center gap-1 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             {state.boardOrder.map((boardId) => {
               const board = state.boards[boardId];
               if (!board) {
@@ -65,7 +66,7 @@ export function WorkspaceNav() {
                   type="button"
                   onClick={() => handleBoardChange(boardId)}
                   className={cn(
-                    "relative h-[49px] px-3 py-2 text-sm font-medium transition-colors",
+                    "relative inline-flex h-12 items-center px-3 text-sm font-medium transition-colors",
                     isActive
                       ? "text-foreground"
                       : "text-muted-foreground hover:text-foreground"
@@ -73,7 +74,7 @@ export function WorkspaceNav() {
                 >
                   {board.name}
                   {isActive ? (
-                    <span className="absolute inset-x-0 -bottom-px h-0.5 bg-primary" />
+                    <span className="absolute inset-x-0 bottom-0 h-0.5 bg-primary" />
                   ) : null}
                 </button>
               );
@@ -88,9 +89,12 @@ export function WorkspaceNav() {
             >
               <Plus className="size-4" />
             </Button>
+            </div>
           </nav>
 
-          <UserMenu />
+          <div className="shrink-0">
+            <UserMenu />
+          </div>
         </div>
       </header>
 

@@ -127,10 +127,6 @@ export function KanbanBoard({
     wasDraggingRef.current = true;
     const dragType = event.active.data.current?.type;
 
-    // #region agent log
-    fetch('http://127.0.0.1:7900/ingest/3c014148-ec67-4e67-8fe1-dc36ef123a7f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d858df'},body:JSON.stringify({sessionId:'d858df',location:'kanban-board.tsx:handleDragStart',message:'drag start',data:{activeId:String(event.active.id),dragType,rect:event.active.rect.current.translated},timestamp:Date.now(),hypothesisId:'B-D'})}).catch(()=>{});
-    // #endregion
-
     if (dragType === "column") {
       const column = state.columns[String(event.active.id)];
       setActiveDragColumn(column ?? null);
@@ -168,10 +164,6 @@ export function KanbanBoard({
       const newIndex = resolvedOverColumnId
         ? columnIds.indexOf(resolvedOverColumnId)
         : -1;
-
-      // #region agent log
-      fetch('http://127.0.0.1:7900/ingest/3c014148-ec67-4e67-8fe1-dc36ef123a7f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d858df'},body:JSON.stringify({sessionId:'d858df',runId:'post-fix',location:'kanban-board.tsx:handleDragEnd:column',message:'column drag end',data:{activeId,overId,resolvedOverColumnId,oldIndex,newIndex,columnIds,willReorder:oldIndex>=0&&newIndex>=0&&activeId!==resolvedOverColumnId},timestamp:Date.now(),hypothesisId:'C-E'})}).catch(()=>{});
-      // #endregion
 
       if (!resolvedOverColumnId || activeId === resolvedOverColumnId) {
         return;

@@ -55,6 +55,11 @@ export interface MoveTaskInput {
   position: number;
 }
 
+export interface ReorderColumnsInput {
+  boardId: string;
+  columnIds: string[];
+}
+
 export const TASK_TAGS = [
   "tech-debt",
   "design",

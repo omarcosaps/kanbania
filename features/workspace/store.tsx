@@ -4,17 +4,25 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useReducer,
+  useRef,
   type ReactNode,
 } from "react";
 
 import { INITIAL_WORKSPACE_STATE } from "./mocks";
+import {
+  applySavedColumnOrders,
+  loadColumnOrders,
+  saveColumnOrder,
+} from "./lib/column-order-storage";
 import type {
   Board,
   Column,
   CreateTaskInput,
   MoveTaskInput,
+  ReorderColumnsInput,
   Task,
   TaskPriority,
   UpdateTaskInput,
@@ -32,7 +40,9 @@ type WorkspaceAction =
   | { type: "CREATE_TASK"; input: CreateTaskInput }
   | { type: "UPDATE_TASK"; input: UpdateTaskInput }
   | { type: "MOVE_TASK"; input: MoveTaskInput }
-  | { type: "DELETE_TASK"; taskId: string };
+  | { type: "DELETE_TASK"; taskId: string }
+  | { type: "REORDER_COLUMNS"; input: ReorderColumnsInput }
+  | { type: "HYDRATE_COLUMN_ORDERS"; orders: Record<string, string[]> };
 
 function createId(prefix: string) {
   return `${prefix}-${crypto.randomUUID().slice(0, 8)}`;
@@ -56,7 +66,28 @@ function getNextPosition(state: WorkspaceState, columnId: string) {
   return Math.max(...tasks.map((task) => task.position)) + 1;
 }
 
-function workspaceReducer(
+function isValidColumnReorder(
+  state: WorkspaceState,
+  boardId: string,
+  columnIds: string[]
+) {
+  const board = state.boards[boardId];
+  if (!board) {
+    return false;
+  }
+
+  if (columnIds.length !== board.columnIds.length) {
+    return false;
+  }
+
+  const currentSet = new Set(board.columnIds);
+  return columnIds.every((id) => {
+    const column = state.columns[id];
+    return column?.boardId === boardId && currentSet.has(id);
+  });
+}
+
+export function workspaceReducer(
   state: WorkspaceState,
   action: WorkspaceAction
 ): WorkspaceState {
@@ -259,6 +290,32 @@ function workspaceReducer(
       return { ...state, tasks: remainingTasks };
     }
 
+    case "REORDER_COLUMNS": {
+      const { boardId, columnIds } = action.input;
+      const board = state.boards[boardId];
+      if (!board || !isValidColumnReorder(state, boardId, columnIds)) {
+        return state;
+      }
+
+      if (
+        board.columnIds.length === columnIds.length &&
+        board.columnIds.every((id, index) => id === columnIds[index])
+      ) {
+        return state;
+      }
+
+      return {
+        ...state,
+        boards: {
+          ...state.boards,
+          [boardId]: { ...board, columnIds },
+        },
+      };
+    }
+
+    case "HYDRATE_COLUMN_ORDERS":
+      return applySavedColumnOrders(state, action.orders);
+
     default:
       return state;
   }
@@ -273,6 +330,7 @@ interface WorkspaceContextValue {
   createColumn: (boardId: string, name: string) => void;
   renameColumn: (columnId: string, name: string) => void;
   deleteColumn: (columnId: string) => void;
+  reorderColumns: (input: ReorderColumnsInput) => void;
   createTask: (input: CreateTaskInput) => void;
   updateTask: (input: UpdateTaskInput) => void;
   moveTask: (input: MoveTaskInput) => void;
@@ -286,6 +344,26 @@ const WorkspaceContext = createContext<WorkspaceContextValue | null>(null);
 
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(workspaceReducer, INITIAL_WORKSPACE_STATE);
+  const isHydratedRef = useRef(false);
+
+  useEffect(() => {
+    dispatch({ type: "HYDRATE_COLUMN_ORDERS", orders: loadColumnOrders() });
+    isHydratedRef.current = true;
+  }, []);
+
+  useEffect(() => {
+    if (!isHydratedRef.current) {
+      return;
+    }
+
+    for (const board of Object.values(state.boards)) {
+      try {
+        saveColumnOrder(board.id, board.columnIds);
+      } catch {
+        // Persistence errors are surfaced by callers when needed.
+      }
+    }
+  }, [state.boards]);
 
   const activeBoard = state.boards[state.activeBoardId];
 
@@ -335,6 +413,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         dispatch({ type: "RENAME_COLUMN", columnId, name }),
       deleteColumn: (columnId) =>
         dispatch({ type: "DELETE_COLUMN", columnId }),
+      reorderColumns: (input) =>
+        dispatch({ type: "REORDER_COLUMNS", input }),
       createTask: (input) => dispatch({ type: "CREATE_TASK", input }),
       updateTask: (input) => dispatch({ type: "UPDATE_TASK", input }),
       moveTask: (input) => dispatch({ type: "MOVE_TASK", input }),

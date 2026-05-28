@@ -10,15 +10,16 @@ describe("session", () => {
   });
 
   it("persiste e recupera usuário válido", () => {
-    setSession({ name: "Maria", email: "maria@example.com" });
+    setSession({ id: "user-1", name: "Maria", email: "maria@example.com" });
     expect(getSession()).toEqual({
+      id: "user-1",
       name: "Maria",
       email: "maria@example.com",
     });
   });
 
   it("retorna null após clearSession", () => {
-    setSession({ name: "Maria", email: "maria@example.com" });
+    setSession({ id: "user-1", name: "Maria", email: "maria@example.com" });
     clearSession();
     expect(getSession()).toBeNull();
     expect(sessionStorage.getItem(SESSION_KEY)).toBeNull();

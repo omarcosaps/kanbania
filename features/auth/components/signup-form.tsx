@@ -8,21 +8,13 @@ import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { signupAction } from "@/features/auth/services/actions";
 import {
   signupSchema,
   type SignupFormValues,
 } from "@/features/auth/schemas";
-import { setSession } from "@/features/auth/session";
 
 import { PasswordInput } from "./password-input";
-
-const MOCK_DELAY_MS = 600;
-
-function delay(ms: number) {
-  return new Promise((resolve) => {
-    window.setTimeout(resolve, ms);
-  });
-}
 
 export function SignupForm() {
   const router = useRouter();
@@ -42,18 +34,21 @@ export function SignupForm() {
 
   const onSubmit = async (values: SignupFormValues) => {
     setSignupError(null);
-    await delay(MOCK_DELAY_MS);
 
-    if (values.email === "taken@example.com") {
-      setSignupError("This email is already in use. Please log in.");
+    const formData = new FormData();
+    formData.set("name", values.name);
+    formData.set("email", values.email);
+    formData.set("password", values.password);
+
+    const result = await signupAction(formData);
+
+    if (!result.success) {
+      setSignupError(result.error);
       return;
     }
 
-    setSession({
-      name: values.name,
-      email: values.email,
-    });
-    router.push("/workspace");
+    router.push(result.redirectTo);
+    router.refresh();
   };
 
   return (

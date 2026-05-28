@@ -15,8 +15,10 @@ export function getSession(): AuthUser | null {
 
     const parsed = JSON.parse(raw) as AuthUser;
     if (
+      typeof parsed.id !== "string" ||
       typeof parsed.name !== "string" ||
       typeof parsed.email !== "string" ||
+      !parsed.id.trim() ||
       !parsed.name.trim() ||
       !parsed.email.trim()
     ) {
@@ -24,6 +26,7 @@ export function getSession(): AuthUser | null {
     }
 
     return {
+      id: parsed.id.trim(),
       name: parsed.name.trim(),
       email: parsed.email.trim(),
     };

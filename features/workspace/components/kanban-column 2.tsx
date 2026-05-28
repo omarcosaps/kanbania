@@ -1,6 +1,5 @@
 "use client";
 
-import type { DraggableAttributes } from "@dnd-kit/core";
 import { useDroppable } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -23,8 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useWorkspace } from "@/features/workspace/store";
 import type { Column, Task, TaskPriority } from "@/features/workspace/types";
-import { GripVertical, MoreHorizontal, Plus } from "lucide-react";
-import { columnDropId } from "@/features/workspace/lib/column-drop-id";
+import { MoreHorizontal, Plus } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
 import { SortableTaskCard } from "./sortable-task-card";
@@ -42,10 +40,6 @@ interface KanbanColumnProps {
     priority?: TaskPriority;
   }) => Promise<boolean>;
   onTaskClick: (task: Task) => void;
-  dragHandleRef?: (element: HTMLElement | null) => void;
-  dragHandleListeners?: Record<string, unknown>;
-  dragHandleAttributes?: DraggableAttributes;
-  isColumnDragging?: boolean;
 }
 
 export function KanbanColumn({
@@ -56,31 +50,24 @@ export function KanbanColumn({
   onCancelCreate,
   onCreateTask,
   onTaskClick,
-  dragHandleRef,
-  dragHandleListeners,
-  dragHandleAttributes,
-  isColumnDragging,
 }: KanbanColumnProps) {
   const { renameColumn, deleteColumn } = useWorkspace();
-  const { setNodeRef, isOver } = useDroppable({
-    id: columnDropId(column.id),
-    data: { type: "column-drop", columnId: column.id },
-  });
+  const { setNodeRef, isOver } = useDroppable({ id: column.id });
   const [renameOpen, setRenameOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [columnName, setColumnName] = useState(column.name);
 
-  const handleRename = async () => {
+  const handleRename = () => {
     const trimmed = columnName.trim();
     if (!trimmed) {
       return;
     }
-    await renameColumn(column.id, trimmed);
+    renameColumn(column.id, trimmed);
     setRenameOpen(false);
   };
 
-  const handleDelete = async () => {
-    await deleteColumn(column.id);
+  const handleDelete = () => {
+    deleteColumn(column.id);
     setDeleteOpen(false);
   };
 
@@ -89,36 +76,18 @@ export function KanbanColumn({
       setDeleteOpen(true);
       return;
     }
-    void deleteColumn(column.id);
+    deleteColumn(column.id);
   };
 
   return (
     <>
       <div className="flex w-[280px] shrink-0 flex-col">
-        <div
-          ref={dragHandleRef}
-          className={cn(
-            "mb-3 flex items-center justify-between px-1",
-            dragHandleListeners &&
-              "cursor-grab touch-none active:cursor-grabbing",
-            isColumnDragging && "cursor-grabbing"
-          )}
-          {...dragHandleAttributes}
-          {...dragHandleListeners}
-        >
-          <div className="flex min-w-0 items-center gap-1.5">
-            {dragHandleListeners ? (
-              <GripVertical className="size-3.5 shrink-0 text-muted-foreground" />
-            ) : null}
-            <div className="flex min-w-0 items-center gap-2">
-              <h2 className="truncate text-sm font-medium">{column.name}</h2>
-              <span className="text-sm text-muted-foreground">{tasks.length}</span>
-            </div>
+        <div className="mb-3 flex items-center justify-between px-1">
+          <div className="flex items-center gap-2">
+            <h2 className="text-sm font-medium">{column.name}</h2>
+            <span className="text-sm text-muted-foreground">{tasks.length}</span>
           </div>
-          <div
-            className="flex items-center gap-0.5"
-            onPointerDown={(event) => event.stopPropagation()}
-          >
+          <div className="flex items-center gap-0.5">
             <Button
               variant="ghost"
               size="icon-sm"

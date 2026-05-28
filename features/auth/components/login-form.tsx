@@ -1,7 +1,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -9,22 +8,13 @@ import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { displayNameFromEmail } from "@/features/auth/lib/display-name";
+import { loginAction } from "@/features/auth/services/actions";
 import {
   loginSchema,
   type LoginFormValues,
 } from "@/features/auth/schemas";
-import { setSession } from "@/features/auth/session";
 
 import { PasswordInput } from "./password-input";
-
-const MOCK_DELAY_MS = 600;
-
-function delay(ms: number) {
-  return new Promise((resolve) => {
-    window.setTimeout(resolve, ms);
-  });
-}
 
 export function LoginForm() {
   const router = useRouter();
@@ -43,18 +33,20 @@ export function LoginForm() {
 
   const onSubmit = async (values: LoginFormValues) => {
     setAuthError(null);
-    await delay(MOCK_DELAY_MS);
 
-    if (values.email === "taken@example.com") {
-      setAuthError("Email or password is incorrect.");
+    const formData = new FormData();
+    formData.set("email", values.email);
+    formData.set("password", values.password);
+
+    const result = await loginAction(formData);
+
+    if (!result.success) {
+      setAuthError(result.error);
       return;
     }
 
-    setSession({
-      name: displayNameFromEmail(values.email),
-      email: values.email,
-    });
-    router.push("/workspace");
+    router.push(result.redirectTo);
+    router.refresh();
   };
 
   return (
@@ -80,13 +72,13 @@ export function LoginForm() {
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label htmlFor="password">Password</Label>
-          <Link
+          <a
             href="#"
             className="text-xs text-muted-foreground hover:text-foreground"
             onClick={(event) => event.preventDefault()}
           >
             Forgot password?
-          </Link>
+          </a>
         </div>
         <PasswordInput
           id="password"

@@ -36,10 +36,10 @@ export function BoardHeader({ onNewTask }: BoardHeaderProps) {
     return null;
   }
 
-  const saveTitle = async () => {
+  const saveTitle = () => {
     const trimmed = draftName.trim();
     if (trimmed && trimmed !== activeBoard.name) {
-      await renameBoard(activeBoard.id, trimmed);
+      renameBoard(activeBoard.id, trimmed);
     } else {
       setDraftName(activeBoard.name);
     }

@@ -1,12 +1,13 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { BoardHeader } from "@/features/workspace/components/board-header";
 import { KanbanBoard } from "@/features/workspace/components/kanban-board";
 import { WorkspaceNav } from "@/features/workspace/components/workspace-nav";
+import { WorkspacePageSkeleton } from "@/features/workspace/components/workspace-page-skeleton";
 import { useWorkspace } from "@/features/workspace/store";
 
 export function WorkspacePageContent() {
@@ -14,8 +15,19 @@ export function WorkspacePageContent() {
   const boardId = params.boardId;
   const { state, activeBoard, getBoardColumns } = useWorkspace();
   const [newTaskColumnId, setNewTaskColumnId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const boardExists = Boolean(state.boards[boardId]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setIsLoading(false);
+    }, 800);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [boardId]);
 
   const handleNewTask = () => {
     if (!activeBoard) {
@@ -27,6 +39,10 @@ export function WorkspacePageContent() {
       setNewTaskColumnId(firstColumn.id);
     }
   };
+
+  if (isLoading) {
+    return <WorkspacePageSkeleton />;
+  }
 
   if (!boardExists) {
     return (

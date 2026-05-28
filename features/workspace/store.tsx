@@ -4,19 +4,26 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useReducer,
-  useRef,
   type ReactNode,
 } from "react";
+import { toast } from "sonner";
 
-import { INITIAL_WORKSPACE_STATE } from "./mocks";
 import {
-  applySavedColumnOrders,
-  loadColumnOrders,
-  saveColumnOrder,
-} from "./lib/column-order-storage";
+  createBoardAction,
+  createColumnAction,
+  createTaskAction,
+  deleteColumnAction,
+  deleteTaskAction,
+  moveTaskAction,
+  renameBoardAction,
+  renameColumnAction,
+  reorderColumnsAction,
+  setLastBoardAction,
+  updateTaskAction,
+} from "@/features/workspace/services/actions";
+import { createEmptyWorkspaceState } from "@/features/workspace/services/mappers";
 import type {
   Board,
   Column,
@@ -28,42 +35,25 @@ import type {
   UpdateTaskInput,
   WorkspaceState,
 } from "./types";
-import { DEFAULT_COLUMN_NAMES } from "./types";
 
 type WorkspaceAction =
+  | { type: "HYDRATE"; state: WorkspaceState }
   | { type: "SET_ACTIVE_BOARD"; boardId: string }
-  | { type: "CREATE_BOARD"; name: string; boardId: string }
+  | { type: "CREATE_BOARD"; board: Board; columns: Column[] }
   | { type: "RENAME_BOARD"; boardId: string; name: string }
-  | { type: "CREATE_COLUMN"; boardId: string; name: string }
+  | { type: "CREATE_COLUMN"; column: Column }
   | { type: "RENAME_COLUMN"; columnId: string; name: string }
   | { type: "DELETE_COLUMN"; columnId: string }
-  | { type: "CREATE_TASK"; input: CreateTaskInput }
-  | { type: "UPDATE_TASK"; input: UpdateTaskInput }
+  | { type: "CREATE_TASK"; task: Task }
+  | { type: "UPDATE_TASK"; task: Task }
   | { type: "MOVE_TASK"; input: MoveTaskInput }
   | { type: "DELETE_TASK"; taskId: string }
-  | { type: "REORDER_COLUMNS"; input: ReorderColumnsInput }
-  | { type: "HYDRATE_COLUMN_ORDERS"; orders: Record<string, string[]> };
-
-function createId(prefix: string) {
-  return `${prefix}-${crypto.randomUUID().slice(0, 8)}`;
-}
-
-function getNextTaskNumber(state: WorkspaceState) {
-  return state.taskCounter + 1;
-}
+  | { type: "REORDER_COLUMNS"; input: ReorderColumnsInput };
 
 function getTasksForColumn(state: WorkspaceState, columnId: string) {
   return Object.values(state.tasks)
     .filter((task) => task.columnId === columnId)
     .sort((a, b) => a.position - b.position);
-}
-
-function getNextPosition(state: WorkspaceState, columnId: string) {
-  const tasks = getTasksForColumn(state, columnId);
-  if (tasks.length === 0) {
-    return 1;
-  }
-  return Math.max(...tasks.map((task) => task.position)) + 1;
 }
 
 function isValidColumnReorder(
@@ -92,11 +82,32 @@ export function workspaceReducer(
   action: WorkspaceAction
 ): WorkspaceState {
   switch (action.type) {
+    case "HYDRATE":
+      return action.state;
+
     case "SET_ACTIVE_BOARD":
       if (state.activeBoardId === action.boardId) {
         return state;
       }
       return { ...state, activeBoardId: action.boardId };
+
+    case "CREATE_BOARD": {
+      const columns = { ...state.columns };
+      action.columns.forEach((column) => {
+        columns[column.id] = column;
+      });
+
+      return {
+        ...state,
+        boardOrder: [...state.boardOrder, action.board.id],
+        activeBoardId: action.board.id,
+        boards: {
+          ...state.boards,
+          [action.board.id]: action.board,
+        },
+        columns,
+      };
+    }
 
     case "RENAME_BOARD": {
       const board = state.boards[action.boardId];
@@ -113,38 +124,8 @@ export function workspaceReducer(
       };
     }
 
-    case "CREATE_BOARD": {
-      const boardId = action.boardId;
-      const columnIds = DEFAULT_COLUMN_NAMES.map(() => createId("col"));
-
-      const columns = { ...state.columns };
-      columnIds.forEach((columnId, index) => {
-        columns[columnId] = {
-          id: columnId,
-          name: DEFAULT_COLUMN_NAMES[index],
-          boardId,
-        };
-      });
-
-      return {
-        ...state,
-        boardOrder: [...state.boardOrder, boardId],
-        activeBoardId: boardId,
-        boards: {
-          ...state.boards,
-          [boardId]: {
-            id: boardId,
-            name: action.name,
-            columnIds,
-          },
-        },
-        columns,
-      };
-    }
-
     case "CREATE_COLUMN": {
-      const columnId = createId("col");
-      const board = state.boards[action.boardId];
+      const board = state.boards[action.column.boardId];
       if (!board) {
         return state;
       }
@@ -153,17 +134,13 @@ export function workspaceReducer(
         ...state,
         columns: {
           ...state.columns,
-          [columnId]: {
-            id: columnId,
-            name: action.name,
-            boardId: action.boardId,
-          },
+          [action.column.id]: action.column,
         },
         boards: {
           ...state.boards,
-          [action.boardId]: {
+          [action.column.boardId]: {
             ...board,
-            columnIds: [...board.columnIds, columnId],
+            columnIds: [...board.columnIds, action.column.id],
           },
         },
       };
@@ -216,55 +193,20 @@ export function workspaceReducer(
       };
     }
 
-    case "CREATE_TASK": {
-      const nextNumber = getNextTaskNumber(state);
-      const id = createId("task");
-      const task: Task = {
-        id,
-        taskId: `KAN-${nextNumber}`,
-        title: action.input.title,
-        description: action.input.description,
-        tag: action.input.tag,
-        priority: action.input.priority ?? null,
-        columnId: action.input.columnId,
-        position: getNextPosition(state, action.input.columnId),
-      };
-
+    case "CREATE_TASK":
       return {
         ...state,
-        taskCounter: nextNumber,
-        tasks: { ...state.tasks, [id]: task },
-      };
-    }
-
-    case "UPDATE_TASK": {
-      const existing = state.tasks[action.input.id];
-      if (!existing) {
-        return state;
-      }
-
-      const updated: Task = {
-        ...existing,
-        ...action.input,
-        id: existing.id,
-        taskId: existing.taskId,
+        tasks: { ...state.tasks, [action.task.id]: action.task },
       };
 
-      if (
-        action.input.columnId &&
-        action.input.columnId !== existing.columnId
-      ) {
-        updated.position = getNextPosition(
-          { ...state, tasks: { ...state.tasks, [existing.id]: updated } },
-          action.input.columnId
-        );
-      }
-
+    case "UPDATE_TASK":
       return {
         ...state,
-        tasks: { ...state.tasks, [existing.id]: updated },
+        tasks: {
+          ...state.tasks,
+          [action.task.id]: action.task,
+        },
       };
-    }
 
     case "MOVE_TASK": {
       const existing = state.tasks[action.input.taskId];
@@ -313,9 +255,6 @@ export function workspaceReducer(
       };
     }
 
-    case "HYDRATE_COLUMN_ORDERS":
-      return applySavedColumnOrders(state, action.orders);
-
     default:
       return state;
   }
@@ -325,16 +264,16 @@ interface WorkspaceContextValue {
   state: WorkspaceState;
   activeBoard: Board | undefined;
   setActiveBoard: (boardId: string) => void;
-  createBoard: (name: string) => string;
-  renameBoard: (boardId: string, name: string) => void;
-  createColumn: (boardId: string, name: string) => void;
-  renameColumn: (columnId: string, name: string) => void;
-  deleteColumn: (columnId: string) => void;
-  reorderColumns: (input: ReorderColumnsInput) => void;
-  createTask: (input: CreateTaskInput) => void;
-  updateTask: (input: UpdateTaskInput) => void;
-  moveTask: (input: MoveTaskInput) => void;
-  deleteTask: (taskId: string) => void;
+  createBoard: (name: string) => Promise<string | null>;
+  renameBoard: (boardId: string, name: string) => Promise<void>;
+  createColumn: (boardId: string, name: string) => Promise<void>;
+  renameColumn: (columnId: string, name: string) => Promise<void>;
+  deleteColumn: (columnId: string) => Promise<void>;
+  reorderColumns: (input: ReorderColumnsInput) => Promise<void>;
+  createTask: (input: CreateTaskInput) => Promise<boolean>;
+  updateTask: (input: UpdateTaskInput) => Promise<boolean>;
+  moveTask: (input: MoveTaskInput) => Promise<void>;
+  deleteTask: (taskId: string) => Promise<void>;
   getBoardColumns: (boardId: string) => Column[];
   getColumnTasks: (columnId: string) => Task[];
   getTaskById: (taskId: string) => Task | undefined;
@@ -342,28 +281,17 @@ interface WorkspaceContextValue {
 
 const WorkspaceContext = createContext<WorkspaceContextValue | null>(null);
 
-export function WorkspaceProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(workspaceReducer, INITIAL_WORKSPACE_STATE);
-  const isHydratedRef = useRef(false);
-
-  useEffect(() => {
-    dispatch({ type: "HYDRATE_COLUMN_ORDERS", orders: loadColumnOrders() });
-    isHydratedRef.current = true;
-  }, []);
-
-  useEffect(() => {
-    if (!isHydratedRef.current) {
-      return;
-    }
-
-    for (const board of Object.values(state.boards)) {
-      try {
-        saveColumnOrder(board.id, board.columnIds);
-      } catch {
-        // Persistence errors are surfaced by callers when needed.
-      }
-    }
-  }, [state.boards]);
+export function WorkspaceProvider({
+  children,
+  initialState,
+}: {
+  children: ReactNode;
+  initialState?: WorkspaceState;
+}) {
+  const [state, dispatch] = useReducer(
+    workspaceReducer,
+    initialState ?? createEmptyWorkspaceState()
+  );
 
   const activeBoard = state.boards[state.activeBoardId];
 
@@ -390,35 +318,176 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     [state.tasks]
   );
 
-  const setActiveBoard = useCallback(
-    (boardId: string) => dispatch({ type: "SET_ACTIVE_BOARD", boardId }),
-    []
-  );
+  const setActiveBoard = useCallback((boardId: string) => {
+    dispatch({ type: "SET_ACTIVE_BOARD", boardId });
+    void setLastBoardAction(boardId);
+  }, []);
 
   const value = useMemo<WorkspaceContextValue>(
     () => ({
       state,
       activeBoard,
       setActiveBoard,
-      createBoard: (name) => {
-        const boardId = createId("board");
-        dispatch({ type: "CREATE_BOARD", name, boardId });
-        return boardId;
+      createBoard: async (name) => {
+        const result = await createBoardAction(name);
+        if (!result.success) {
+          toast.error(result.error);
+          return null;
+        }
+
+        dispatch({
+          type: "CREATE_BOARD",
+          board: result.data.board,
+          columns: result.data.columns,
+        });
+        return result.data.board.id;
       },
-      renameBoard: (boardId, name) =>
-        dispatch({ type: "RENAME_BOARD", boardId, name }),
-      createColumn: (boardId, name) =>
-        dispatch({ type: "CREATE_COLUMN", boardId, name }),
-      renameColumn: (columnId, name) =>
-        dispatch({ type: "RENAME_COLUMN", columnId, name }),
-      deleteColumn: (columnId) =>
-        dispatch({ type: "DELETE_COLUMN", columnId }),
-      reorderColumns: (input) =>
-        dispatch({ type: "REORDER_COLUMNS", input }),
-      createTask: (input) => dispatch({ type: "CREATE_TASK", input }),
-      updateTask: (input) => dispatch({ type: "UPDATE_TASK", input }),
-      moveTask: (input) => dispatch({ type: "MOVE_TASK", input }),
-      deleteTask: (taskId) => dispatch({ type: "DELETE_TASK", taskId }),
+      renameBoard: async (boardId, name) => {
+        const previous = state.boards[boardId]?.name;
+        dispatch({ type: "RENAME_BOARD", boardId, name });
+        const result = await renameBoardAction(boardId, name);
+        if (!result.success) {
+          if (previous) {
+            dispatch({ type: "RENAME_BOARD", boardId, name: previous });
+          }
+          toast.error(result.error);
+        }
+      },
+      createColumn: async (boardId, name) => {
+        const result = await createColumnAction(boardId, name);
+        if (!result.success) {
+          toast.error(result.error);
+          return;
+        }
+        dispatch({ type: "CREATE_COLUMN", column: result.data });
+      },
+      renameColumn: async (columnId, name) => {
+        const previous = state.columns[columnId]?.name;
+        dispatch({ type: "RENAME_COLUMN", columnId, name });
+        const result = await renameColumnAction(columnId, name);
+        if (!result.success) {
+          if (previous) {
+            dispatch({ type: "RENAME_COLUMN", columnId, name: previous });
+          }
+          toast.error(result.error);
+        }
+      },
+      deleteColumn: async (columnId) => {
+        const result = await deleteColumnAction(columnId);
+        if (!result.success) {
+          toast.error(result.error);
+          return;
+        }
+        dispatch({ type: "DELETE_COLUMN", columnId });
+      },
+      reorderColumns: async (input) => {
+        const board = state.boards[input.boardId];
+        const previous = board?.columnIds;
+        dispatch({ type: "REORDER_COLUMNS", input });
+        const result = await reorderColumnsAction(input.boardId, input.columnIds);
+        if (!result.success && previous) {
+          dispatch({
+            type: "REORDER_COLUMNS",
+            input: { boardId: input.boardId, columnIds: previous },
+          });
+          toast.error(result.error);
+        }
+      },
+      createTask: async (input) => {
+        const boardId = state.columns[input.columnId]?.boardId;
+        if (!boardId) {
+          toast.error("Failed to save. Please try again.");
+          return false;
+        }
+
+        const result = await createTaskAction({
+          title: input.title,
+          columnId: input.columnId,
+          boardId,
+          tag: input.tag,
+          priority: input.priority ?? undefined,
+          description: input.description,
+        });
+
+        if (!result.success) {
+          toast.error(result.error);
+          return false;
+        }
+
+        dispatch({ type: "CREATE_TASK", task: result.data });
+        return true;
+      },
+      updateTask: async (input) => {
+        const existing = state.tasks[input.id];
+        if (!existing) {
+          return false;
+        }
+
+        const optimistic: Task = {
+          ...existing,
+          ...input,
+          id: existing.id,
+          taskId: existing.taskId,
+        };
+
+        if (input.columnId && input.columnId !== existing.columnId) {
+          optimistic.position =
+            getTasksForColumn(state, input.columnId).length + 1;
+        }
+
+        dispatch({ type: "UPDATE_TASK", task: optimistic });
+
+        const result = await updateTaskAction({
+          id: input.id,
+          title: input.title,
+          description: input.description,
+          tag: input.tag,
+          priority: input.priority,
+          columnId: input.columnId,
+          position: optimistic.position,
+        });
+
+        if (!result.success) {
+          dispatch({ type: "UPDATE_TASK", task: existing });
+          toast.error(result.error);
+          return false;
+        }
+
+        dispatch({ type: "UPDATE_TASK", task: result.data });
+        return true;
+      },
+      moveTask: async (input) => {
+        const existing = state.tasks[input.taskId];
+        if (!existing) {
+          return;
+        }
+
+        dispatch({ type: "MOVE_TASK", input });
+        const result = await moveTaskAction(input);
+        if (!result.success) {
+          dispatch({
+            type: "MOVE_TASK",
+            input: {
+              taskId: existing.id,
+              columnId: existing.columnId,
+              position: existing.position,
+            },
+          });
+          toast.error(result.error);
+        }
+      },
+      deleteTask: async (taskId) => {
+        const existing = state.tasks[taskId];
+        const result = await deleteTaskAction(taskId);
+        if (!result.success) {
+          toast.error(result.error);
+          return;
+        }
+        dispatch({ type: "DELETE_TASK", taskId });
+        if (existing) {
+          void existing;
+        }
+      },
       getBoardColumns,
       getColumnTasks,
       getTaskById,

@@ -58,10 +58,10 @@ export function SignupForm() {
       ) : null}
 
       <div className="space-y-2">
-        <Label htmlFor="name">Name</Label>
+        <Label htmlFor="name">Nome</Label>
         <Input
           id="name"
-          placeholder="Jane Doe"
+          placeholder="Maria Silva"
           aria-invalid={!!errors.name}
           {...register("name")}
         />
@@ -71,11 +71,11 @@ export function SignupForm() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="email">Email address</Label>
+        <Label htmlFor="email">E-mail</Label>
         <Input
           id="email"
           type="email"
-          placeholder="you@example.com"
+          placeholder="voce@exemplo.com"
           aria-invalid={!!errors.email}
           {...register("email")}
         />
@@ -85,7 +85,7 @@ export function SignupForm() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
+        <Label htmlFor="password">Senha</Label>
         <PasswordInput
           id="password"
           placeholder="••••••••"
@@ -98,7 +98,7 @@ export function SignupForm() {
       </div>
 
       <Button type="submit" className="mt-2 h-10 w-full" disabled={isSubmitting}>
-        {isSubmitting ? "Creating account…" : "Create account"}
+        {isSubmitting ? "Criando conta…" : "Criar conta"}
       </Button>
     </form>
   );

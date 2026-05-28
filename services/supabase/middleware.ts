@@ -32,8 +32,11 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const pathname = request.nextUrl.pathname;
-  const isAuthRoute =
-    pathname.startsWith("/login") || pathname.startsWith("/signup");
+  const isPublicAuthRoute =
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/signup") ||
+    pathname.startsWith("/forgot-password");
+  const isResetPasswordRoute = pathname.startsWith("/reset-password");
   const isWorkspaceRoute = pathname.startsWith("/workspace");
 
   if (!user && isWorkspaceRoute) {
@@ -42,7 +45,13 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && isAuthRoute) {
+  if (!user && isResetPasswordRoute) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/forgot-password";
+    return NextResponse.redirect(url);
+  }
+
+  if (user && isPublicAuthRoute) {
     const url = request.nextUrl.clone();
     url.pathname = "/workspace";
     return NextResponse.redirect(url);

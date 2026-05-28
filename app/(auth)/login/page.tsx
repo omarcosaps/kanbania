@@ -4,17 +4,17 @@ import { AuthLayout } from "@/features/auth/components/auth-layout";
 import { LoginForm } from "@/features/auth/components/login-form";
 
 export const metadata: Metadata = {
-  title: "Log in — KanbanIA",
-  description: "Access your KanbanIA workspace",
+  title: "Entrar — KanbanIA",
+  description: "Acesse seu workspace no KanbanIA",
 };
 
 export default function LoginPage() {
   return (
     <AuthLayout
-      title="Welcome back"
-      subtitle="Enter your details to access your workspace."
-      footerText="Don't have an account?"
-      footerLinkText="Sign up"
+      title="Bem-vindo de volta"
+      subtitle="Informe seus dados para acessar seu workspace."
+      footerText="Não tem uma conta?"
+      footerLinkText="Cadastre-se"
       footerHref="/signup"
     >
       <LoginForm />

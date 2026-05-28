@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -56,11 +57,11 @@ export function LoginForm() {
       ) : null}
 
       <div className="space-y-2">
-        <Label htmlFor="email">Email address</Label>
+        <Label htmlFor="email">E-mail</Label>
         <Input
           id="email"
           type="email"
-          placeholder="you@example.com"
+          placeholder="voce@exemplo.com"
           aria-invalid={!!errors.email}
           {...register("email")}
         />
@@ -71,14 +72,13 @@ export function LoginForm() {
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <Label htmlFor="password">Password</Label>
-          <a
-            href="#"
+          <Label htmlFor="password">Senha</Label>
+          <Link
+            href="/forgot-password"
             className="text-xs text-muted-foreground hover:text-foreground"
-            onClick={(event) => event.preventDefault()}
           >
-            Forgot password?
-          </a>
+            Esqueceu a senha?
+          </Link>
         </div>
         <PasswordInput
           id="password"
@@ -92,7 +92,7 @@ export function LoginForm() {
       </div>
 
       <Button type="submit" className="mt-2 h-10 w-full" disabled={isSubmitting}>
-        {isSubmitting ? "Logging in…" : "Log in"}
+        {isSubmitting ? "Entrando…" : "Entrar"}
       </Button>
     </form>
   );

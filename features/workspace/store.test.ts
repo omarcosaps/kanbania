@@ -61,27 +61,21 @@ describe("workspaceReducer REORDER_COLUMNS", () => {
   });
 });
 
-describe("workspaceReducer HYDRATE_COLUMN_ORDERS", () => {
-  it("aplica ordem salva quando todos os IDs existem", () => {
-    const original = INITIAL_WORKSPACE_STATE.boards["board-1"].columnIds;
-    const saved = [...original].reverse();
-
+describe("workspaceReducer HYDRATE", () => {
+  it("substitui o estado completo", () => {
     const next = workspaceReducer(INITIAL_WORKSPACE_STATE, {
-      type: "HYDRATE_COLUMN_ORDERS",
-      orders: { "board-1": saved },
+      type: "HYDRATE",
+      state: {
+        boards: {},
+        columns: {},
+        tasks: {},
+        activeBoardId: "",
+        taskCounter: 0,
+        boardOrder: [],
+      },
     });
 
-    expect(next.boards["board-1"].columnIds).toEqual(saved);
-  });
-
-  it("ignora ordem salva inválida", () => {
-    const next = workspaceReducer(INITIAL_WORKSPACE_STATE, {
-      type: "HYDRATE_COLUMN_ORDERS",
-      orders: { "board-1": ["col-invalid"] },
-    });
-
-    expect(next.boards["board-1"].columnIds).toEqual(
-      INITIAL_WORKSPACE_STATE.boards["board-1"].columnIds
-    );
+    expect(next.boardOrder).toEqual([]);
+    expect(Object.keys(next.boards)).toHaveLength(0);
   });
 });

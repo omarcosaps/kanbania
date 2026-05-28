@@ -23,22 +23,31 @@ export function WorkspaceNav() {
   const { state, activeBoard, setActiveBoard, createBoard } = useWorkspace();
   const [newBoardOpen, setNewBoardOpen] = useState(false);
   const [boardName, setBoardName] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
 
   const handleBoardChange = (boardId: string) => {
     setActiveBoard(boardId);
     router.push(`/workspace/${boardId}`);
   };
 
-  const handleCreateBoard = () => {
+  const handleCreateBoard = async () => {
     const name = boardName.trim();
-    if (!name) {
+    if (!name || isCreating) {
       return;
     }
 
-    const boardId = createBoard(name);
+    setIsCreating(true);
+    const boardId = await createBoard(name);
+    setIsCreating(false);
+
+    if (!boardId) {
+      return;
+    }
+
     setBoardName("");
     setNewBoardOpen(false);
     router.push(`/workspace/${boardId}`);
+    router.refresh();
   };
 
   return (
@@ -109,7 +118,7 @@ export function WorkspaceNav() {
             onChange={(event) => setBoardName(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === "Enter") {
-                handleCreateBoard();
+                void handleCreateBoard();
               }
             }}
           />
@@ -117,8 +126,11 @@ export function WorkspaceNav() {
             <Button variant="outline" onClick={() => setNewBoardOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleCreateBoard} disabled={!boardName.trim()}>
-              Create
+            <Button
+              onClick={() => void handleCreateBoard()}
+              disabled={!boardName.trim() || isCreating}
+            >
+              {isCreating ? "Creating…" : "Create"}
             </Button>
           </DialogFooter>
         </DialogContent>

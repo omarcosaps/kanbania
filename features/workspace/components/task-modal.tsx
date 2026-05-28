@@ -68,13 +68,13 @@ export function TaskModal({ task, open, onOpenChange }: TaskModalProps) {
     return null;
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const trimmed = title.trim();
     if (!trimmed) {
       return;
     }
 
-    updateTask({
+    const saved = await updateTask({
       id: task.id,
       title: trimmed,
       description: description.trim() || undefined,
@@ -82,11 +82,14 @@ export function TaskModal({ task, open, onOpenChange }: TaskModalProps) {
       tag,
       priority,
     });
-    onOpenChange(false);
+
+    if (saved) {
+      onOpenChange(false);
+    }
   };
 
-  const handleDelete = () => {
-    deleteTask(task.id);
+  const handleDelete = async () => {
+    await deleteTask(task.id);
     setDeleteConfirmOpen(false);
     onOpenChange(false);
   };

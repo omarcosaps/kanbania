@@ -2,11 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useWorkspace } from "@/features/workspace/store";
-import { LayoutGrid, Lock, Plus } from "@/lib/icons";
+import { Plus } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
 interface BoardHeaderProps {
@@ -83,14 +82,6 @@ export function BoardHeader({ onNewTask }: BoardHeaderProps) {
             {activeBoard.name}
           </button>
         )}
-        <Badge variant="secondary" className="gap-1 font-normal">
-          <Lock className="size-3" />
-          Private
-        </Badge>
-        <Badge variant="secondary" className="gap-1 font-normal">
-          <LayoutGrid className="size-3" />
-          View
-        </Badge>
       </div>
 
       <Button size="sm" className="gap-1.5" onClick={onNewTask}>

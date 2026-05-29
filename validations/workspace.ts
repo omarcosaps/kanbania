@@ -40,9 +40,14 @@ export const reorderColumnsSchema = z.object({
   columnIds: z.array(z.string().uuid()).min(1),
 });
 
+export const reorderBoardsSchema = z.object({
+  boardIds: z.array(z.string().uuid()).min(1),
+});
+
 export const taskTagSchema = z.enum(TASK_TAGS);
 
 export type CreateTaskPayload = z.infer<typeof createTaskSchema>;
 export type UpdateTaskPayload = z.infer<typeof updateTaskSchema>;
 export type MoveTaskPayload = z.infer<typeof moveTaskSchema>;
 export type ReorderColumnsPayload = z.infer<typeof reorderColumnsSchema>;
+export type ReorderBoardsPayload = z.infer<typeof reorderBoardsSchema>;

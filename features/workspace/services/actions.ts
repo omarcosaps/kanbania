@@ -16,6 +16,7 @@ import {
   columnNameSchema,
   createTaskSchema,
   moveTaskSchema,
+  reorderBoardsSchema,
   reorderColumnsSchema,
   updateTaskSchema,
 } from "@/validations/workspace";
@@ -161,6 +162,69 @@ export async function renameBoardAction(boardId: string, name: string) {
 
   revalidateWorkspace(boardId);
   return { success: true, data: { boardId, name: parsed.data.name } };
+}
+
+export async function deleteBoardAction(boardId: string) {
+  const { supabase } = await getUserWorkspaceId();
+  const { data: board, error } = await supabase
+    .from("boards")
+    .delete()
+    .eq("id", boardId)
+    .select("id")
+    .single();
+
+  if (error || !board) {
+    return { success: false, error: "Failed to delete board." };
+  }
+
+  revalidateWorkspace(boardId);
+  return { success: true, data: { boardId: board.id } };
+}
+
+export async function reorderBoardsAction(boardIds: string[]) {
+  const parsed = reorderBoardsSchema.safeParse({ boardIds });
+  if (!parsed.success) {
+    return { success: false, error: "Invalid board order." };
+  }
+
+  const { supabase, workspaceId } = await getUserWorkspaceId();
+  if (!workspaceId) {
+    return { success: false, error: "Workspace not found." };
+  }
+
+  const { data: workspaceBoards } = await supabase
+    .from("boards")
+    .select("id")
+    .eq("workspace_id", workspaceId);
+
+  const workspaceBoardIds = new Set(
+    (workspaceBoards ?? []).map((board) => board.id)
+  );
+
+  const isValidOrder =
+    parsed.data.boardIds.length === workspaceBoardIds.size &&
+    parsed.data.boardIds.every((id) => workspaceBoardIds.has(id));
+
+  if (!isValidOrder) {
+    return { success: false, error: "Invalid board order." };
+  }
+
+  const updates = parsed.data.boardIds.map((id, index) =>
+    supabase
+      .from("boards")
+      .update({ position: index + 1 })
+      .eq("id", id)
+      .eq("workspace_id", workspaceId)
+  );
+
+  const results = await Promise.all(updates);
+  const failed = results.find((result) => result.error);
+  if (failed?.error) {
+    return { success: false, error: "Failed to reorder boards." };
+  }
+
+  revalidateWorkspace();
+  return { success: true, data: { boardIds: parsed.data.boardIds } };
 }
 
 export async function createColumnAction(

@@ -10,6 +10,11 @@ export function WorkspaceBoardSync({ boardId }: { boardId: string }) {
   const { state, setActiveBoard } = useWorkspace();
 
   useEffect(() => {
+    if (state.boardOrder.length === 0) {
+      router.replace("/workspace");
+      return;
+    }
+
     if (state.boards[boardId]) {
       if (state.activeBoardId !== boardId) {
         setActiveBoard(boardId);
@@ -26,8 +31,8 @@ export function WorkspaceBoardSync({ boardId }: { boardId: string }) {
     router,
     setActiveBoard,
     state.activeBoardId,
-    state.boards,
     state.boardOrder,
+    state.boards,
   ]);
 
   return null;

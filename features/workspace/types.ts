@@ -60,6 +60,10 @@ export interface ReorderColumnsInput {
   columnIds: string[];
 }
 
+export interface ReorderBoardsInput {
+  boardIds: string[];
+}
+
 export const TASK_TAGS = [
   "tech-debt",
   "design",

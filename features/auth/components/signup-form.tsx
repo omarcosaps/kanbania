@@ -14,7 +14,7 @@ import {
   type SignupFormValues,
 } from "@/features/auth/schemas";
 
-import { PasswordInput } from "./password-input";
+import { PasswordInput } from "@/components/password-input";
 
 export function SignupForm() {
   const router = useRouter();

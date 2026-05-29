@@ -25,6 +25,7 @@ export const navigation: NavSection[] = [
       { name: "Alert", href: "/styleguide/components/alert" },
       { name: "Radio Group", href: "/styleguide/components/radio-group" },
       { name: "Dropdown Menu", href: "/styleguide/components/dropdown-menu" },
+      { name: "Input", href: "/styleguide/components/input" },
     ],
   },
 ];

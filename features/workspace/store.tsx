@@ -14,11 +14,13 @@ import {
   createBoardAction,
   createColumnAction,
   createTaskAction,
+  deleteBoardAction,
   deleteColumnAction,
   deleteTaskAction,
   moveTaskAction,
   renameBoardAction,
   renameColumnAction,
+  reorderBoardsAction,
   reorderColumnsAction,
   setLastBoardAction,
   updateTaskAction,
@@ -29,6 +31,7 @@ import type {
   Column,
   CreateTaskInput,
   MoveTaskInput,
+  ReorderBoardsInput,
   ReorderColumnsInput,
   Task,
   TaskPriority,
@@ -41,6 +44,8 @@ type WorkspaceAction =
   | { type: "SET_ACTIVE_BOARD"; boardId: string }
   | { type: "CREATE_BOARD"; board: Board; columns: Column[] }
   | { type: "RENAME_BOARD"; boardId: string; name: string }
+  | { type: "DELETE_BOARD"; boardId: string }
+  | { type: "REORDER_BOARDS"; boardIds: string[] }
   | { type: "CREATE_COLUMN"; column: Column }
   | { type: "RENAME_COLUMN"; columnId: string; name: string }
   | { type: "DELETE_COLUMN"; columnId: string }
@@ -54,6 +59,15 @@ function getTasksForColumn(state: WorkspaceState, columnId: string) {
   return Object.values(state.tasks)
     .filter((task) => task.columnId === columnId)
     .sort((a, b) => a.position - b.position);
+}
+
+function isValidBoardReorder(state: WorkspaceState, boardIds: string[]) {
+  if (boardIds.length !== state.boardOrder.length) {
+    return false;
+  }
+
+  const currentSet = new Set(state.boardOrder);
+  return boardIds.every((id) => currentSet.has(id) && state.boards[id]);
 }
 
 function isValidColumnReorder(
@@ -121,6 +135,56 @@ export function workspaceReducer(
           ...state.boards,
           [action.boardId]: { ...board, name: action.name },
         },
+      };
+    }
+
+    case "DELETE_BOARD": {
+      const board = state.boards[action.boardId];
+      if (!board) {
+        return state;
+      }
+
+      const columnIdSet = new Set(board.columnIds);
+      const remainingColumns = Object.fromEntries(
+        Object.entries(state.columns).filter(
+          ([id]) => !columnIdSet.has(id)
+        )
+      );
+      const remainingTasks = Object.fromEntries(
+        Object.entries(state.tasks).filter(
+          ([, task]) => !columnIdSet.has(task.columnId)
+        )
+      );
+      const { [action.boardId]: _removed, ...remainingBoards } = state.boards;
+      const boardOrder = state.boardOrder.filter((id) => id !== action.boardId);
+      const wasActive = state.activeBoardId === action.boardId;
+      const activeBoardId = wasActive
+        ? (boardOrder[0] ?? "")
+        : state.activeBoardId;
+
+      return {
+        ...state,
+        boards: remainingBoards,
+        columns: remainingColumns,
+        tasks: remainingTasks,
+        boardOrder,
+        activeBoardId,
+        taskCounter: wasActive ? 0 : state.taskCounter,
+      };
+    }
+
+    case "REORDER_BOARDS": {
+      if (!isValidBoardReorder(state, action.boardIds)) {
+        return state;
+      }
+
+      if (state.boardOrder.every((id, index) => id === action.boardIds[index])) {
+        return state;
+      }
+
+      return {
+        ...state,
+        boardOrder: action.boardIds,
       };
     }
 
@@ -266,6 +330,8 @@ interface WorkspaceContextValue {
   setActiveBoard: (boardId: string) => void;
   createBoard: (name: string) => Promise<string | null>;
   renameBoard: (boardId: string, name: string) => Promise<void>;
+  deleteBoard: (boardId: string) => Promise<string | null>;
+  reorderBoards: (input: ReorderBoardsInput) => Promise<void>;
   createColumn: (boardId: string, name: string) => Promise<void>;
   renameColumn: (columnId: string, name: string) => Promise<void>;
   deleteColumn: (columnId: string) => Promise<void>;
@@ -350,6 +416,30 @@ export function WorkspaceProvider({
           if (previous) {
             dispatch({ type: "RENAME_BOARD", boardId, name: previous });
           }
+          toast.error(result.error);
+        }
+      },
+      deleteBoard: async (boardId) => {
+        const previousState = state;
+        dispatch({ type: "DELETE_BOARD", boardId });
+        const result = await deleteBoardAction(boardId);
+        if (!result.success) {
+          dispatch({ type: "HYDRATE", state: previousState });
+          toast.error(result.error);
+          return null;
+        }
+
+        const nextBoardId = previousState.boardOrder.find(
+          (id) => id !== boardId
+        );
+        return nextBoardId ?? null;
+      },
+      reorderBoards: async (input) => {
+        const previous = state.boardOrder;
+        dispatch({ type: "REORDER_BOARDS", boardIds: input.boardIds });
+        const result = await reorderBoardsAction(input.boardIds);
+        if (!result.success) {
+          dispatch({ type: "REORDER_BOARDS", boardIds: previous });
           toast.error(result.error);
         }
       },

@@ -1,29 +1,61 @@
 "use client";
 
+import {
+  DndContext,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  horizontalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { Logo } from "@/components/layout/logo";
 import { UserMenu } from "@/features/auth/components/user-menu";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import { CreateBoardDialog } from "@/features/workspace/components/create-board-dialog";
+import { SortableBoardTab } from "@/features/workspace/components/sortable-board-tab";
 import { useWorkspace } from "@/features/workspace/store";
 import { Plus } from "@/lib/icons";
-import { cn } from "@/lib/utils";
 
-export function WorkspaceNav() {
+interface WorkspaceNavProps {
+  createBoardOpen?: boolean;
+  onCreateBoardOpenChange?: (open: boolean) => void;
+}
+
+export function WorkspaceNav({
+  createBoardOpen: controlledOpen,
+  onCreateBoardOpenChange,
+}: WorkspaceNavProps) {
   const router = useRouter();
-  const { state, activeBoard, setActiveBoard, createBoard } = useWorkspace();
-  const [newBoardOpen, setNewBoardOpen] = useState(false);
-  const [boardName, setBoardName] = useState("");
-  const [isCreating, setIsCreating] = useState(false);
+  const {
+    state,
+    activeBoard,
+    setActiveBoard,
+    deleteBoard,
+    reorderBoards,
+  } = useWorkspace();
+  const [internalOpen, setInternalOpen] = useState(false);
+  const newBoardOpen = controlledOpen ?? internalOpen;
+
+  const setNewBoardOpen = (open: boolean) => {
+    if (controlledOpen === undefined) {
+      setInternalOpen(open);
+    }
+    onCreateBoardOpenChange?.(open);
+  };
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    })
+  );
 
   useEffect(() => {
     if (state.boardOrder.length === 0) {
@@ -31,29 +63,44 @@ export function WorkspaceNav() {
     }
   }, [state.boardOrder.length]);
 
+  const openCreateDialog = () => {
+    setNewBoardOpen(true);
+  };
+
   const handleBoardChange = (boardId: string) => {
     setActiveBoard(boardId);
     router.push(`/workspace/${boardId}`);
   };
 
-  const handleCreateBoard = async () => {
-    const name = boardName.trim();
-    if (!name || isCreating) {
-      return;
-    }
-
-    setIsCreating(true);
-    const boardId = await createBoard(name);
-    setIsCreating(false);
-
-    if (!boardId) {
-      return;
-    }
-
-    setBoardName("");
-    setNewBoardOpen(false);
+  const handleBoardCreated = (boardId: string) => {
     router.push(`/workspace/${boardId}`);
     router.refresh();
+  };
+
+  const handleDeleteBoard = async (boardId: string) => {
+    const nextBoardId = await deleteBoard(boardId);
+    if (nextBoardId) {
+      router.push(`/workspace/${nextBoardId}`);
+    } else {
+      router.push("/workspace");
+    }
+    router.refresh();
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    const oldIndex = state.boardOrder.indexOf(String(active.id));
+    const newIndex = state.boardOrder.indexOf(String(over.id));
+    if (oldIndex === -1 || newIndex === -1) {
+      return;
+    }
+
+    const nextOrder = arrayMove(state.boardOrder, oldIndex, newIndex);
+    void reorderBoards({ boardIds: nextOrder });
   };
 
   return (
@@ -66,45 +113,45 @@ export function WorkspaceNav() {
           </div>
 
           <nav className="flex min-w-0 flex-1 items-center overflow-hidden">
-            <div className="flex items-center gap-1 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-            {state.boardOrder.map((boardId) => {
-              const board = state.boards[boardId];
-              if (!board) {
-                return null;
-              }
-
-              const isActive = boardId === activeBoard?.id;
-
-              return (
-                <button
-                  key={boardId}
-                  type="button"
-                  onClick={() => handleBoardChange(boardId)}
-                  className={cn(
-                    "relative inline-flex h-12 items-center px-3 text-sm font-medium transition-colors",
-                    isActive
-                      ? "text-foreground"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  {board.name}
-                  {isActive ? (
-                    <span className="absolute inset-x-0 bottom-0 h-0.5 bg-primary" />
-                  ) : null}
-                </button>
-              );
-            })}
-
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              className="shrink-0 text-muted-foreground"
-              onClick={() => setNewBoardOpen(true)}
-              aria-label="Add board"
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
             >
-              <Plus className="size-4" />
-            </Button>
-            </div>
+              <SortableContext
+                items={state.boardOrder}
+                strategy={horizontalListSortingStrategy}
+              >
+                <div className="flex items-center gap-1 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                  {state.boardOrder.map((boardId) => {
+                    const board = state.boards[boardId];
+                    if (!board) {
+                      return null;
+                    }
+
+                    return (
+                      <SortableBoardTab
+                        key={boardId}
+                        board={board}
+                        isActive={boardId === activeBoard?.id}
+                        onSelect={() => handleBoardChange(boardId)}
+                        onDelete={() => handleDeleteBoard(boardId)}
+                      />
+                    );
+                  })}
+
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    className="shrink-0 text-muted-foreground"
+                    onClick={openCreateDialog}
+                    aria-label="Add board"
+                  >
+                    <Plus className="size-4" />
+                  </Button>
+                </div>
+              </SortableContext>
+            </DndContext>
           </nav>
 
           <div className="shrink-0">
@@ -113,34 +160,11 @@ export function WorkspaceNav() {
         </div>
       </header>
 
-      <Dialog open={newBoardOpen} onOpenChange={setNewBoardOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Create new board</DialogTitle>
-          </DialogHeader>
-          <Input
-            placeholder="Board name"
-            value={boardName}
-            onChange={(event) => setBoardName(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") {
-                void handleCreateBoard();
-              }
-            }}
-          />
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setNewBoardOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              onClick={() => void handleCreateBoard()}
-              disabled={!boardName.trim() || isCreating}
-            >
-              {isCreating ? "Creating…" : "Create"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <CreateBoardDialog
+        open={newBoardOpen}
+        onOpenChange={setNewBoardOpen}
+        onCreated={handleBoardCreated}
+      />
     </>
   );
 }

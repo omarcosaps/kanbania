@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Plus } from "@/lib/icons";
 
 import { Button } from "@/components/ui/button";
@@ -74,6 +75,26 @@ export default function ButtonPage() {
           Foco visível via <code className="text-foreground">focus-visible:ring-ring</code>.
           Botões desabilitados não recebem interação. Use texto descritivo ou{" "}
           <code className="text-foreground">aria-label</code> em botões apenas com ícone.
+        </p>
+      </Section>
+
+      <Section title="Limitações">
+        <p className="text-sm text-muted-foreground">
+          Botões posicionados dentro de inputs (ex.: toggle de visibilidade de
+          senha){" "}
+          <strong className="font-medium text-foreground">não devem</strong> usar
+          este componente: o feedback tátil{" "}
+          <code className="text-foreground">active:translate-y-px</code> desloca
+          ícones centralizados com{" "}
+          <code className="text-foreground">-translate-y-1/2</code>. Use um{" "}
+          <code className="text-foreground">&lt;button&gt;</code> nativo — veja{" "}
+          <Link
+            href="/styleguide/components/input"
+            className="text-foreground underline-offset-4 hover:underline"
+          >
+            Input
+          </Link>
+          .
         </p>
       </Section>
     </div>

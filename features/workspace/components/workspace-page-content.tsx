@@ -3,7 +3,6 @@
 import { useParams } from "next/navigation";
 import { useState } from "react";
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { BoardHeader } from "@/features/workspace/components/board-header";
 import { KanbanBoard } from "@/features/workspace/components/kanban-board";
 import { WorkspaceNav } from "@/features/workspace/components/workspace-nav";
@@ -29,17 +28,22 @@ export function WorkspacePageContent() {
   };
 
   if (!boardExists) {
+    const hasOtherBoards = state.boardOrder.length > 0;
+
     return (
       <div className="flex min-h-full flex-col bg-background">
         <WorkspaceNav />
         <main className="flex flex-1 items-center justify-center p-6">
-          <Alert variant="destructive" className="max-w-md">
-            <AlertTitle>Board not found</AlertTitle>
-            <AlertDescription>
-              This board does not exist or may have been removed. Select another
-              board from the tabs above.
-            </AlertDescription>
-          </Alert>
+          {hasOtherBoards ? null : (
+            <div className="max-w-md space-y-2 text-center">
+              <h2 className="text-lg font-semibold tracking-tight">
+                No boards yet
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Create your first board to start organizing tasks in columns.
+              </p>
+            </div>
+          )}
         </main>
       </div>
     );
@@ -49,7 +53,7 @@ export function WorkspacePageContent() {
     <div className="flex min-h-full flex-col bg-background">
       <WorkspaceNav />
       <BoardHeader onNewTask={handleNewTask} />
-      <main className="flex-1">
+      <main className="flex flex-1 flex-col">
         <KanbanBoard
           newTaskColumnId={newTaskColumnId}
           onNewTaskColumnChange={setNewTaskColumnId}

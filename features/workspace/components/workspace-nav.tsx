@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Logo } from "@/components/layout/logo";
 import { UserMenu } from "@/features/auth/components/user-menu";
@@ -24,6 +24,12 @@ export function WorkspaceNav() {
   const [newBoardOpen, setNewBoardOpen] = useState(false);
   const [boardName, setBoardName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+
+  useEffect(() => {
+    if (state.boardOrder.length === 0) {
+      setNewBoardOpen(true);
+    }
+  }, [state.boardOrder.length]);
 
   const handleBoardChange = (boardId: string) => {
     setActiveBoard(boardId);

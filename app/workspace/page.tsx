@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
+import { getCurrentUser } from "@/features/auth/services/actions";
+import { WorkspaceStartContent } from "@/features/workspace/components/workspace-start-content";
 import { resolveDefaultBoardRedirect } from "@/features/workspace/services/queries";
 
 export const metadata: Metadata = {
@@ -9,11 +11,18 @@ export const metadata: Metadata = {
 };
 
 export default async function WorkspaceIndexPage() {
-  const target = await resolveDefaultBoardRedirect();
+  const [user, target] = await Promise.all([
+    getCurrentUser(),
+    resolveDefaultBoardRedirect(),
+  ]);
+
+  if (!user) {
+    redirect("/login");
+  }
 
   if (target) {
     redirect(target);
   }
 
-  redirect("/login");
+  return <WorkspaceStartContent />;
 }

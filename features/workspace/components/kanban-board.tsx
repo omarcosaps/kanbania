@@ -21,6 +21,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { shouldShowBoardEmptyState } from "@/features/workspace/lib/board-empty-state-visibility";
 import { getPositionForIndex } from "@/features/workspace/lib/task-position";
 import { parseColumnDropId } from "@/features/workspace/lib/column-drop-id";
 import {
@@ -30,6 +31,7 @@ import {
 import type { Column, Task, TaskPriority } from "@/features/workspace/types";
 import { Plus } from "@/lib/icons";
 
+import { BoardEmptyState } from "./board-empty-state";
 import { SortableKanbanColumn } from "./sortable-kanban-column";
 import { TaskModal } from "./task-modal";
 
@@ -72,6 +74,22 @@ export function KanbanBoard({
   }
 
   const columns = getBoardColumns(activeBoard.id);
+  const hasTasks = columns.some((col) => getColumnTasks(col.id).length > 0);
+  const showEmptyState = shouldShowBoardEmptyState(hasTasks, newTaskColumnId);
+
+  if (showEmptyState) {
+    const firstColumn = columns[0];
+
+    return (
+      <BoardEmptyState
+        onNewTask={() => {
+          if (firstColumn) {
+            onNewTaskColumnChange(firstColumn.id);
+          }
+        }}
+      />
+    );
+  }
 
   const resolveColumnIdFromOver = (overId: string): string | null => {
     if (state.columns[overId]) {

@@ -21,6 +21,7 @@ import { UserMenu } from "@/features/auth/components/user-menu";
 import { Button } from "@/components/ui/button";
 import { CreateBoardDialog } from "@/features/workspace/components/create-board-dialog";
 import { SortableBoardTab } from "@/features/workspace/components/sortable-board-tab";
+import { useUrlBoardId } from "@/features/workspace/hooks/use-url-board-id";
 import { useWorkspace } from "@/features/workspace/store";
 import { Plus } from "@/lib/icons";
 
@@ -34,13 +35,8 @@ export function WorkspaceNav({
   onCreateBoardOpenChange,
 }: WorkspaceNavProps) {
   const router = useRouter();
-  const {
-    state,
-    activeBoard,
-    setActiveBoard,
-    deleteBoard,
-    reorderBoards,
-  } = useWorkspace();
+  const urlBoardId = useUrlBoardId();
+  const { state, deleteBoard, reorderBoards } = useWorkspace();
   const [internalOpen, setInternalOpen] = useState(false);
   const newBoardOpen = controlledOpen ?? internalOpen;
 
@@ -68,8 +64,9 @@ export function WorkspaceNav({
   };
 
   const handleBoardChange = (boardId: string) => {
-    setActiveBoard(boardId);
-    router.push(`/workspace/${boardId}`);
+    if (boardId !== urlBoardId) {
+      router.push(`/workspace/${boardId}`);
+    }
   };
 
   const handleBoardCreated = (boardId: string) => {
@@ -133,7 +130,7 @@ export function WorkspaceNav({
                       <SortableBoardTab
                         key={boardId}
                         board={board}
-                        isActive={boardId === activeBoard?.id}
+                        isActive={boardId === urlBoardId}
                         onSelect={() => handleBoardChange(boardId)}
                         onDelete={() => handleDeleteBoard(boardId)}
                       />

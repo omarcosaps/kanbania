@@ -328,6 +328,8 @@ interface WorkspaceContextValue {
   state: WorkspaceState;
   activeBoard: Board | undefined;
   setActiveBoard: (boardId: string) => void;
+  syncActiveBoard: (boardId: string) => void;
+  persistLastBoard: (boardId: string) => void;
   createBoard: (name: string) => Promise<string | null>;
   renameBoard: (boardId: string, name: string) => Promise<void>;
   deleteBoard: (boardId: string) => Promise<string | null>;
@@ -384,16 +386,29 @@ export function WorkspaceProvider({
     [state.tasks]
   );
 
-  const setActiveBoard = useCallback((boardId: string) => {
+  const syncActiveBoard = useCallback((boardId: string) => {
     dispatch({ type: "SET_ACTIVE_BOARD", boardId });
+  }, []);
+
+  const persistLastBoard = useCallback((boardId: string) => {
     void setLastBoardAction(boardId);
   }, []);
+
+  const setActiveBoard = useCallback(
+    (boardId: string) => {
+      syncActiveBoard(boardId);
+      persistLastBoard(boardId);
+    },
+    [syncActiveBoard, persistLastBoard]
+  );
 
   const value = useMemo<WorkspaceContextValue>(
     () => ({
       state,
       activeBoard,
       setActiveBoard,
+      syncActiveBoard,
+      persistLastBoard,
       createBoard: async (name) => {
         const result = await createBoardAction(name);
         if (!result.success) {
@@ -586,6 +601,8 @@ export function WorkspaceProvider({
       state,
       activeBoard,
       setActiveBoard,
+      syncActiveBoard,
+      persistLastBoard,
       getBoardColumns,
       getColumnTasks,
       getTaskById,

@@ -76,8 +76,7 @@ export const TASK_TAGS = [
 export type TaskTag = (typeof TASK_TAGS)[number];
 
 export const DEFAULT_COLUMN_NAMES = [
-  "Backlog",
-  "Todo",
-  "In Progress",
-  "Done",
+  "Fazer",
+  "Fazendo",
+  "Feito",
 ] as const;

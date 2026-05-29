@@ -31,6 +31,7 @@ import { TASK_TAGS } from "@/features/workspace/types";
 import { Flag, Tag } from "lucide-react";
 
 interface TaskModalProps {
+  boardId: string;
   task: Task | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -42,9 +43,14 @@ const PRIORITY_OPTIONS: { value: TaskPriority; label: string }[] = [
   { value: "low", label: "Low" },
 ];
 
-export function TaskModal({ task, open, onOpenChange }: TaskModalProps) {
-  const { activeBoard, getBoardColumns, updateTask, deleteTask } =
-    useWorkspace();
+export function TaskModal({
+  boardId,
+  task,
+  open,
+  onOpenChange,
+}: TaskModalProps) {
+  const { state, getBoardColumns, updateTask, deleteTask } = useWorkspace();
+  const board = state.boards[boardId];
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [columnId, setColumnId] = useState("");
@@ -52,7 +58,7 @@ export function TaskModal({ task, open, onOpenChange }: TaskModalProps) {
   const [priority, setPriority] = useState<TaskPriority>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
-  const columns = activeBoard ? getBoardColumns(activeBoard.id) : [];
+  const columns = board ? getBoardColumns(board.id) : [];
 
   useEffect(() => {
     if (task) {
@@ -64,7 +70,7 @@ export function TaskModal({ task, open, onOpenChange }: TaskModalProps) {
     }
   }, [task]);
 
-  if (!task || !activeBoard) {
+  if (!task || !board) {
     return null;
   }
 
@@ -110,7 +116,7 @@ export function TaskModal({ task, open, onOpenChange }: TaskModalProps) {
                 ›
               </span>
               <span className="text-sm font-medium text-muted-foreground">
-                {activeBoard.name}
+                {board.name}
               </span>
             </div>
           </div>

@@ -1,15 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 
 import { useWorkspace } from "@/features/workspace/store";
 
 export function WorkspaceBoardSync({ boardId }: { boardId: string }) {
   const router = useRouter();
-  const { state, setActiveBoard } = useWorkspace();
+  const { state, syncActiveBoard, persistLastBoard } = useWorkspace();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (state.boardOrder.length === 0) {
       router.replace("/workspace");
       return;
@@ -17,7 +17,8 @@ export function WorkspaceBoardSync({ boardId }: { boardId: string }) {
 
     if (state.boards[boardId]) {
       if (state.activeBoardId !== boardId) {
-        setActiveBoard(boardId);
+        syncActiveBoard(boardId);
+        persistLastBoard(boardId);
       }
       return;
     }
@@ -29,7 +30,8 @@ export function WorkspaceBoardSync({ boardId }: { boardId: string }) {
   }, [
     boardId,
     router,
-    setActiveBoard,
+    syncActiveBoard,
+    persistLastBoard,
     state.activeBoardId,
     state.boardOrder,
     state.boards,

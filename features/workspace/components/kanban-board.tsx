@@ -36,17 +36,18 @@ import { SortableKanbanColumn } from "./sortable-kanban-column";
 import { TaskModal } from "./task-modal";
 
 interface KanbanBoardProps {
+  boardId: string;
   newTaskColumnId: string | null;
   onNewTaskColumnChange: (columnId: string | null) => void;
 }
 
 export function KanbanBoard({
+  boardId,
   newTaskColumnId,
   onNewTaskColumnChange,
 }: KanbanBoardProps) {
   const {
     state,
-    activeBoard,
     getBoardColumns,
     getColumnTasks,
     getTaskById,
@@ -69,13 +70,19 @@ export function KanbanBoard({
     })
   );
 
-  if (!activeBoard) {
+  const board = state.boards[boardId];
+
+  if (!board) {
     return null;
   }
 
-  const columns = getBoardColumns(activeBoard.id);
+  const columns = getBoardColumns(board.id);
   const hasTasks = columns.some((col) => getColumnTasks(col.id).length > 0);
-  const showEmptyState = shouldShowBoardEmptyState(hasTasks, newTaskColumnId);
+  const showEmptyState = shouldShowBoardEmptyState(
+    hasTasks,
+    newTaskColumnId,
+    columns.length > 0
+  );
 
   if (showEmptyState) {
     const firstColumn = columns[0];
@@ -171,7 +178,7 @@ export function KanbanBoard({
       const overId = String(over.id);
       const resolvedOverColumnId = resolveColumnIdFromOver(overId);
 
-      const columnIds = activeBoard.columnIds;
+      const columnIds = board.columnIds;
       const oldIndex = columnIds.indexOf(activeId);
       const newIndex = resolvedOverColumnId
         ? columnIds.indexOf(resolvedOverColumnId)
@@ -187,7 +194,7 @@ export function KanbanBoard({
 
       const reordered = arrayMove(columnIds, oldIndex, newIndex);
 
-      reorderColumns({ boardId: activeBoard.id, columnIds: reordered });
+      reorderColumns({ boardId: board.id, columnIds: reordered });
       return;
     }
 
@@ -266,7 +273,7 @@ export function KanbanBoard({
     if (!trimmed) {
       return;
     }
-    await createColumn(activeBoard.id, trimmed);
+    await createColumn(board.id, trimmed);
     setNewColumnName("");
     setAddColumnOpen(false);
   };
@@ -337,6 +344,7 @@ export function KanbanBoard({
       </DndContext>
 
       <TaskModal
+        boardId={boardId}
         task={selectedTask}
         open={modalOpen}
         onOpenChange={(open) => {

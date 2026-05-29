@@ -9,20 +9,22 @@ import { Plus } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
 interface BoardHeaderProps {
+  boardId: string;
   onNewTask: () => void;
 }
 
-export function BoardHeader({ onNewTask }: BoardHeaderProps) {
-  const { activeBoard, renameBoard } = useWorkspace();
+export function BoardHeader({ boardId, onNewTask }: BoardHeaderProps) {
+  const { state, renameBoard } = useWorkspace();
+  const board = state.boards[boardId];
   const [isEditing, setIsEditing] = useState(false);
   const [draftName, setDraftName] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (activeBoard) {
-      setDraftName(activeBoard.name);
+    if (board) {
+      setDraftName(board.name);
     }
-  }, [activeBoard]);
+  }, [board]);
 
   useEffect(() => {
     if (isEditing) {
@@ -31,22 +33,22 @@ export function BoardHeader({ onNewTask }: BoardHeaderProps) {
     }
   }, [isEditing]);
 
-  if (!activeBoard) {
+  if (!board) {
     return null;
   }
 
   const saveTitle = async () => {
     const trimmed = draftName.trim();
-    if (trimmed && trimmed !== activeBoard.name) {
-      await renameBoard(activeBoard.id, trimmed);
+    if (trimmed && trimmed !== board.name) {
+      await renameBoard(board.id, trimmed);
     } else {
-      setDraftName(activeBoard.name);
+      setDraftName(board.name);
     }
     setIsEditing(false);
   };
 
   const cancelEdit = () => {
-    setDraftName(activeBoard.name);
+    setDraftName(board.name);
     setIsEditing(false);
   };
 
@@ -79,7 +81,7 @@ export function BoardHeader({ onNewTask }: BoardHeaderProps) {
             onClick={() => setIsEditing(true)}
             className="text-left text-xl font-semibold tracking-tight transition-colors hover:text-foreground/80"
           >
-            {activeBoard.name}
+            {board.name}
           </button>
         )}
       </div>

@@ -29,6 +29,13 @@ export function createTaskCollisionDetection(
       return taskPointerHits;
     }
 
+    const columnDropPointerHit = pointerCollisions.find((collision) =>
+      String(collision.id).startsWith(COLUMN_DROP_PREFIX)
+    );
+    if (columnDropPointerHit) {
+      return [columnDropPointerHit];
+    }
+
     const centerCollisions = closestCenter(args);
     const taskCenterHit = centerCollisions.find((collision) =>
       isTaskCollision(String(collision.id))

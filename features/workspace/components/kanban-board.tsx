@@ -243,7 +243,6 @@ export function KanbanBoard({
 
     const activeId = String(active.id);
     const activeTask = getTaskById(activeId);
-    const rawOverId = String(over.id);
     const resolvedOverId = resolveTaskDropOverId(event, getTaskById);
 
     if (!activeTask) {

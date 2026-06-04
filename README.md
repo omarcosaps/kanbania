@@ -1,36 +1,98 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# KanbanIA
 
-## Getting Started
+KanbanIA é um projeto experimental de Kanban criado para estudar e praticar a construção de software com apoio de IA.
 
-First, run the development server:
+O objetivo é explorar o ciclo completo de desenvolvimento de produto, desde a definição de requisitos e arquitetura até a implementação, versionamento, documentação e deploy.
+
+## Objetivo
+
+Este projeto funciona como um laboratório prático para estudar:
+
+- Desenvolvimento de produtos com IA
+- Arquitetura Front-end com Next.js
+- Organização de features e componentes
+- Autenticação e persistência com Supabase
+- Boas práticas de Git, commits e Pull Requests
+- Documentação técnica e tomada de decisão
+
+## Stack
+
+- Next.js
+- React
+- TypeScript
+- Supabase
+- Design System próprio
+- GitHub
+
+## Funcionalidades
+
+- Criação de workspaces
+- Colunas customizáveis
+- Tarefas com drag-and-drop
+- Autenticação de usuários
+- Persistência de dados
+- Organização por features
+
+## Estrutura do Projeto
+
+```txt
+app/                 Rotas e páginas da aplicação
+components/          Componentes reutilizáveis de UI
+features/            Funcionalidades organizadas por domínio
+lib/                 Utilitários, helpers e configurações
+services/supabase/   Integração com Supabase
+supabase/migrations/ Migrações do banco de dados
+validations/         Schemas de validação
+docs/                Documentação técnica
+prompts/             Prompts utilizados durante o desenvolvimento com IA
+```
+
+## Como Executar Localmente
+
+Instale as dependências:
+
+```bash
+npm install
+```
+
+Inicie o servidor de desenvolvimento:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+A aplicação estará disponível em:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```txt
+http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Variáveis de Ambiente
 
-## Learn More
+Crie um arquivo `.env.local` na raiz do projeto:
 
-To learn more about Next.js, take a look at the following resources:
+```env
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Workflow com IA
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Este projeto utiliza IA como suporte para:
 
-## Deploy on Vercel
+- Planejamento de funcionalidades
+- Estruturação de componentes
+- Refatoração de código
+- Revisão técnica
+- Documentação
+- Engenharia de prompts
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Todo código gerado ou sugerido por IA é revisado e validado manualmente antes de ser integrado ao projeto.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Status
+
+🚧 Projeto experimental em desenvolvimento.
+
+## Aprendizados
+
+Este repositório também funciona como registro da evolução dos estudos sobre desenvolvimento de software e produtos digitais assistidos por IA.

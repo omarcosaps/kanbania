@@ -21,12 +21,6 @@ export function BoardHeader({ boardId, onNewTask }: BoardHeaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (board) {
-      setDraftName(board.name);
-    }
-  }, [board]);
-
-  useEffect(() => {
     if (isEditing) {
       inputRef.current?.focus();
       inputRef.current?.select();
@@ -36,6 +30,11 @@ export function BoardHeader({ boardId, onNewTask }: BoardHeaderProps) {
   if (!board) {
     return null;
   }
+
+  const startEditing = () => {
+    setDraftName(board.name);
+    setIsEditing(true);
+  };
 
   const saveTitle = async () => {
     const trimmed = draftName.trim();
@@ -78,7 +77,7 @@ export function BoardHeader({ boardId, onNewTask }: BoardHeaderProps) {
         ) : (
           <button
             type="button"
-            onClick={() => setIsEditing(true)}
+            onClick={startEditing}
             className="text-left text-xl font-semibold tracking-tight transition-colors hover:text-foreground/80"
           >
             {board.name}

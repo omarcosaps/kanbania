@@ -1,7 +1,7 @@
 "use client";
 
 import { Circle } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -51,24 +51,14 @@ export function TaskModal({
 }: TaskModalProps) {
   const { state, getBoardColumns, updateTask, deleteTask } = useWorkspace();
   const board = state.boards[boardId];
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [columnId, setColumnId] = useState("");
-  const [tag, setTag] = useState<string | undefined>();
-  const [priority, setPriority] = useState<TaskPriority>(null);
+  const [title, setTitle] = useState(task?.title ?? "");
+  const [description, setDescription] = useState(task?.description ?? "");
+  const [columnId, setColumnId] = useState(task?.columnId ?? "");
+  const [tag, setTag] = useState<string | undefined>(task?.tag);
+  const [priority, setPriority] = useState<TaskPriority>(task?.priority ?? null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
   const columns = board ? getBoardColumns(board.id) : [];
-
-  useEffect(() => {
-    if (task) {
-      setTitle(task.title);
-      setDescription(task.description ?? "");
-      setColumnId(task.columnId);
-      setTag(task.tag);
-      setPriority(task.priority);
-    }
-  }, [task]);
 
   if (!task || !board) {
     return null;

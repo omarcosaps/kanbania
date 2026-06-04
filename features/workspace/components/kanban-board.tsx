@@ -388,6 +388,7 @@ export function KanbanBoard({
       </DndContext>
 
       <TaskModal
+        key={selectedTask?.id ?? "none"}
         boardId={boardId}
         task={selectedTask}
         open={modalOpen}

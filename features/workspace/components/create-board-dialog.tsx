@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -27,13 +27,15 @@ export function CreateBoardDialog({
   const { createBoard } = useWorkspace();
   const [boardName, setBoardName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+  const [prevOpen, setPrevOpen] = useState(open);
 
-  useEffect(() => {
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (!open) {
       setBoardName("");
       setIsCreating(false);
     }
-  }, [open]);
+  }
 
   const handleCreate = async () => {
     const name = boardName.trim();

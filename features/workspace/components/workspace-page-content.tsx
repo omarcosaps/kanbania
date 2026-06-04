@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { BoardHeader } from "@/features/workspace/components/board-header";
 import { KanbanBoard } from "@/features/workspace/components/kanban-board";
@@ -14,10 +14,12 @@ export function WorkspacePageContent() {
   const { state, getBoardColumns } = useWorkspace();
   const [newTaskColumnId, setNewTaskColumnId] = useState<string | null>(null);
   const [createBoardOpen, setCreateBoardOpen] = useState(false);
+  const [lastBoardId, setLastBoardId] = useState(boardId);
 
-  useEffect(() => {
+  if (boardId !== lastBoardId) {
+    setLastBoardId(boardId);
     setNewTaskColumnId(null);
-  }, [boardId]);
+  }
 
   if (!boardId) {
     return null;

@@ -14,7 +14,7 @@ import {
   horizontalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { Logo } from "@/components/layout/logo";
 import { UserMenu } from "@/features/auth/components/user-menu";
@@ -38,9 +38,23 @@ export function WorkspaceNav({
   const urlBoardId = useUrlBoardId();
   const { state, deleteBoard, reorderBoards } = useWorkspace();
   const [internalOpen, setInternalOpen] = useState(false);
-  const newBoardOpen = controlledOpen ?? internalOpen;
+  const [autoOpenedForEmpty, setAutoOpenedForEmpty] = useState(false);
+  const [prevBoardCount, setPrevBoardCount] = useState<number | null>(null);
+
+  const boardCount = state.boardOrder.length;
+  if (prevBoardCount !== boardCount) {
+    setPrevBoardCount(boardCount);
+    if (boardCount === 0) {
+      setAutoOpenedForEmpty(true);
+    }
+  }
+
+  const newBoardOpen = (controlledOpen ?? internalOpen) || autoOpenedForEmpty;
 
   const setNewBoardOpen = (open: boolean) => {
+    if (!open) {
+      setAutoOpenedForEmpty(false);
+    }
     if (controlledOpen === undefined) {
       setInternalOpen(open);
     }
@@ -52,12 +66,6 @@ export function WorkspaceNav({
       activationConstraint: { distance: 8 },
     })
   );
-
-  useEffect(() => {
-    if (state.boardOrder.length === 0) {
-      setNewBoardOpen(true);
-    }
-  }, [state.boardOrder.length]);
 
   const openCreateDialog = () => {
     setNewBoardOpen(true);

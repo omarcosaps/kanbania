@@ -4,14 +4,14 @@ import {
   DndContext,
   DragOverlay,
   PointerSensor,
-  closestCenter,
   useSensor,
   useSensors,
   type DragEndEvent,
+  type DragOverEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
 import { arrayMove, SortableContext, horizontalListSortingStrategy } from "@dnd-kit/sortable";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import { TaskCard } from "@/components/task-card";
 import { Button } from "@/components/ui/button";
@@ -22,8 +22,16 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { shouldShowBoardEmptyState } from "@/features/workspace/lib/board-empty-state-visibility";
-import { getPositionForIndex } from "@/features/workspace/lib/task-position";
+import { createTaskCollisionDetection } from "@/features/workspace/lib/get-task-collision-detection";
 import { parseColumnDropId } from "@/features/workspace/lib/column-drop-id";
+import {
+  computeTaskMove,
+  getColumnTaskCardRects,
+  getDragPointerY,
+  resolveColumnIdFromColumnDrag,
+  resolveTargetColumnId,
+  resolveTaskDropOverId,
+} from "@/features/workspace/lib/task-reorder-index";
 import {
   priorityToTaskCardPriority,
   useWorkspace,
@@ -63,11 +71,18 @@ export function KanbanBoard({
   const [activeDragTask, setActiveDragTask] = useState<Task | null>(null);
   const [activeDragColumn, setActiveDragColumn] = useState<Column | null>(null);
   const wasDraggingRef = useRef(false);
+  const lastOverTaskIdRef = useRef<string | null>(null);
+  const lastOverColumnIdRef = useRef<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 8 },
     })
+  );
+
+  const taskCollisionDetection = useMemo(
+    () => createTaskCollisionDetection(getTaskById),
+    [getTaskById]
   );
 
   const board = state.boards[boardId];
@@ -98,23 +113,7 @@ export function KanbanBoard({
     );
   }
 
-  const resolveColumnIdFromOver = (overId: string): string | null => {
-    if (state.columns[overId]) {
-      return overId;
-    }
-
-    const dropColumnId = parseColumnDropId(overId);
-    if (dropColumnId) {
-      return dropColumnId;
-    }
-
-    const overTask = getTaskById(overId);
-    if (overTask) {
-      return overTask.columnId;
-    }
-
-    return null;
-  };
+  const hasColumn = (columnId: string) => Boolean(state.columns[columnId]);
 
   const handleCreateTask = async (
     columnId: string,
@@ -142,8 +141,14 @@ export function KanbanBoard({
     setModalOpen(true);
   };
 
+  const resetTaskDragRefs = () => {
+    lastOverTaskIdRef.current = null;
+    lastOverColumnIdRef.current = null;
+  };
+
   const handleDragStart = (event: DragStartEvent) => {
     wasDraggingRef.current = true;
+    resetTaskDragRefs();
     const dragType = event.active.data.current?.type;
 
     if (dragType === "column") {
@@ -158,6 +163,32 @@ export function KanbanBoard({
     setActiveDragColumn(null);
   };
 
+  const handleDragOver = (event: DragOverEvent) => {
+    const { active, over } = event;
+    if (!over || active.data.current?.type !== "task") {
+      return;
+    }
+
+    const overId = String(over.id);
+    const overTask = getTaskById(overId);
+
+    if (overTask) {
+      lastOverTaskIdRef.current = overId;
+      lastOverColumnIdRef.current = overTask.columnId;
+      return;
+    }
+
+    const dropColumnId = parseColumnDropId(overId);
+    if (dropColumnId) {
+      lastOverColumnIdRef.current = dropColumnId;
+      return;
+    }
+
+    if (hasColumn(overId)) {
+      lastOverColumnIdRef.current = overId;
+    }
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveDragTask(null);
@@ -168,6 +199,7 @@ export function KanbanBoard({
     }, 0);
 
     if (!over) {
+      resetTaskDragRefs();
       return;
     }
 
@@ -176,13 +208,19 @@ export function KanbanBoard({
     if (dragType === "column") {
       const activeId = String(active.id);
       const overId = String(over.id);
-      const resolvedOverColumnId = resolveColumnIdFromOver(overId);
+      const resolvedOverColumnId = resolveColumnIdFromColumnDrag(
+        overId,
+        getTaskById,
+        hasColumn
+      );
 
       const columnIds = board.columnIds;
       const oldIndex = columnIds.indexOf(activeId);
       const newIndex = resolvedOverColumnId
         ? columnIds.indexOf(resolvedOverColumnId)
         : -1;
+
+      resetTaskDragRefs();
 
       if (!resolvedOverColumnId || activeId === resolvedOverColumnId) {
         return;
@@ -199,73 +237,79 @@ export function KanbanBoard({
     }
 
     if (dragType !== "task") {
+      resetTaskDragRefs();
       return;
     }
 
     const activeId = String(active.id);
-    const overId = String(over.id);
     const activeTask = getTaskById(activeId);
+    const rawOverId = String(over.id);
+    const resolvedOverId = resolveTaskDropOverId(event, getTaskById);
 
-    if (!activeTask || activeId === overId) {
+    if (!activeTask) {
+      resetTaskDragRefs();
       return;
     }
 
-    let targetColumnId: string;
-    let overIndex: number;
-
-    if (state.columns[overId]) {
-      targetColumnId = overId;
-      overIndex = getColumnTasks(overId)
-        .filter((task) => task.id !== activeId)
-        .length;
-    } else {
-      const dropColumnId = resolveColumnIdFromOver(overId);
-      if (dropColumnId) {
-        targetColumnId = dropColumnId;
-        overIndex = getColumnTasks(dropColumnId).filter(
-          (task) => task.id !== activeId
-        ).length;
-      } else {
-      const overTask = getTaskById(overId);
-      if (!overTask) {
-        return;
-      }
-      targetColumnId = overTask.columnId;
-      overIndex = getColumnTasks(targetColumnId).findIndex(
-        (task) => task.id === overId
-      );
-      if (overIndex < 0) {
-        overIndex = getColumnTasks(targetColumnId).filter(
-          (task) => task.id !== activeId
-        ).length;
-      }
-      }
-    }
-
-    const sourceColumnId = activeTask.columnId;
-    const sourceTasks = getColumnTasks(sourceColumnId);
-    const activeIndex = sourceTasks.findIndex((task) => task.id === activeId);
-
-    if (sourceColumnId === targetColumnId) {
-      if (activeIndex === overIndex) {
-        return;
-      }
-
-      const reordered = arrayMove(sourceTasks, activeIndex, overIndex);
-      const newIndex = reordered.findIndex((task) => task.id === activeId);
-      const withoutActive = sourceTasks.filter((task) => task.id !== activeId);
-      const position = getPositionForIndex(withoutActive, newIndex);
-
-      moveTask({ taskId: activeId, columnId: targetColumnId, position });
+    if (!resolvedOverId || activeId === resolvedOverId) {
+      resetTaskDragRefs();
       return;
     }
 
-    const targetTasks = getColumnTasks(targetColumnId).filter(
-      (task) => task.id !== activeId
+    let targetColumnId = resolveTargetColumnId(
+      resolvedOverId,
+      getTaskById,
+      hasColumn
     );
-    const position = getPositionForIndex(targetTasks, overIndex);
 
-    moveTask({ taskId: activeId, columnId: targetColumnId, position });
+    if (!targetColumnId) {
+      targetColumnId = lastOverColumnIdRef.current;
+    }
+
+    if (!targetColumnId) {
+      resetTaskDragRefs();
+      return;
+    }
+
+    const isColumnDrop =
+      Boolean(parseColumnDropId(resolvedOverId)) || hasColumn(resolvedOverId);
+
+    let overTaskId: string | null = getTaskById(resolvedOverId)
+      ? resolvedOverId
+      : null;
+
+    if (!overTaskId && lastOverTaskIdRef.current) {
+      const lastTask = getTaskById(lastOverTaskIdRef.current);
+      if (lastTask && lastTask.columnId === targetColumnId) {
+        overTaskId = lastOverTaskIdRef.current;
+      }
+    }
+
+    const appendToEnd = isColumnDrop && !overTaskId;
+    const pointerY = getDragPointerY(event);
+    const cardRects = getColumnTaskCardRects(targetColumnId);
+
+    const moveResult = computeTaskMove({
+      activeTask,
+      targetColumnId,
+      getColumnTasks,
+      overTaskId,
+      pointerY,
+      cardRects,
+      appendToEnd,
+    });
+
+    resetTaskDragRefs();
+
+    if (!moveResult) {
+      return;
+    }
+
+    moveTask({
+      taskId: activeId,
+      columnId: moveResult.columnId,
+      position: moveResult.position,
+    });
   };
 
   const handleAddColumn = async () => {
@@ -282,8 +326,9 @@ export function KanbanBoard({
     <>
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCenter}
+        collisionDetection={taskCollisionDetection}
         onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
         <div className="flex gap-4 overflow-x-auto px-6 pt-8 pb-8">

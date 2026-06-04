@@ -33,6 +33,7 @@ export function SortableTaskCard({ task, onTaskClick }: SortableTaskCardProps) {
   return (
     <div
       ref={setNodeRef}
+      data-task-id={task.id}
       style={style}
       className={cn(isDragging && "opacity-40")}
       {...attributes}

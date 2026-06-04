@@ -154,11 +154,8 @@ export function KanbanColumn({
         </div>
 
         <div
-          ref={setNodeRef}
-          className={cn(
-            "flex min-h-[80px] flex-col gap-2 rounded-lg p-1 transition-colors",
-            isOver && "bg-muted/30"
-          )}
+          data-column-id={column.id}
+          className="flex min-h-[80px] flex-col gap-2 rounded-lg p-1"
         >
           {isCreating ? (
             <TaskCardInline
@@ -190,6 +187,16 @@ export function KanbanColumn({
               />
             ))}
           </SortableContext>
+
+          <div
+            ref={setNodeRef}
+            className={cn(
+              "min-h-8 shrink-0 rounded-md transition-colors",
+              tasks.length === 0 && "min-h-[72px]",
+              isOver && "bg-muted/30"
+            )}
+            aria-hidden
+          />
         </div>
       </div>
 

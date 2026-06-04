@@ -125,7 +125,7 @@ export function TaskModal({
             <Input
               value={title}
               onChange={(event) => setTitle(event.target.value)}
-              className="h-auto border-0 bg-transparent px-0 text-2xl font-medium leading-8 shadow-none focus-visible:ring-0"
+              className="h-auto border-0 bg-transparent px-3 py-2 text-2xl font-medium leading-8 shadow-none focus-visible:ring-0"
             />
 
             <div className="flex flex-col gap-4 pt-2">
@@ -233,7 +233,7 @@ export function TaskModal({
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               placeholder="Add a description..."
-              className="min-h-[100px] resize-none border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
+              className="min-h-[100px] resize-none border-0 bg-transparent px-3 py-2 shadow-none focus-visible:ring-0"
             />
           </div>
 
